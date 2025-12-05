@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今網寬頻 - 申裝專頁</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background for a clean look */
+            position: relative; /* For floating CTA buttons */
+            min-height: 100vh; /* Ensure body takes full height for sticky footer/floating buttons */
+        }
+        .hero-section {
+            /* 使用客戶提供的圖片作為背景 */
+            background-image: url('image_22ef05.png'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            min-height: 60vh; /* 調整高度以顯示圖片 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-overlay {
+            /* 調整透明度讓背景圖片更突出，同時確保文字可讀 */
+            background-color: rgba(0, 0, 0, 0.4); 
+            position: absolute;
+            inset: 0;
+            border-radius: 0 0 12px 12px;
+        }
+        /* Custom animation for fade-in-up */
+        @keyframes fadeInFromBottom {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInFromBottom 0.8s ease-out forwards;
+        }
+        .animate-fade-in-up.delay-100 {
+            animation-delay: 0.1s;
+        }
+        .animate-fade-in-up.delay-200 {
+            animation-delay: 0.2s;
+        }
+        .animate-fade-in-up.delay-300 {
+            animation-delay: 0.3s;
+        }
+        .floating-cta {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        @media (max-width: 640px) {
+            .floating-cta {
+                width: calc(100% - 40px); /* Full width minus padding */
+                left: 20px;
+                right: 20px;
+                flex-direction: row;
+                justify-content: space-around;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- 1️⃣ 頁首大圖 + 導入歡迎語 (使用圖片作為背景) -->
+    <header class="hero-section text-white py-20 md:py-32 rounded-b-lg shadow-lg">
+        <div class="hero-overlay rounded-b-lg"></div>
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4 animate-fade-in-up">
+                歡迎您來到今網寬頻申裝專頁！
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 animate-fade-in-up delay-100 font-semibold">
+                今網提供的不只是上網，更是一份「讓家人安心的穩定連線」。
+            </p>
+            <p class="text-lg md:text-xl mb-8 animate-fade-in-up delay-200">
+                立即往下了解熱門方案，3分鐘完成申請，讓您全家安心用網！
+            </p>
+            <div class="text-left max-w-2xl mx-auto text-lg md:text-xl space-y-3 animate-fade-in-up delay-300 bg-black bg-opacity-30 p-4 rounded-lg">
+                <p>📌 申辦超安心! 不綁約、無違約金、10天鑑賞期全額退費！</p>
+                <p>📌 房間收不到訊號？工程師到府Wi-Fi檢測＋分享器永久保固</p>
+                <p>📌 想搭配手機更省？我們是唯一整合網路＋門號的雙網品牌</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2️⃣ 品牌簡介與安心感建立（為何選今網） -->
+    <section class="py-16 bg-white rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl -mt-16 relative z-20 px-6">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10 text-blue-700">
+                為何選擇今網寬頻？
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-4xl mb-4 text-blue-600">🏆</div>
+                    <h3 class="font-semibold text-xl mb-2">30年專業經營</h3>
+                    <p class="text-gray-600">您最信賴的社區網路</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-4xl mb-4 text-blue-600">🏡</div>
+                    <h3 class="font-semibold text-xl mb-2">服務超過15萬戶</h3>
+                    <p class="text-gray-600">遍佈10,000+社區</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-4xl mb-4 text-blue-600">✅</div>
+                    <h3 class="font-semibold text-xl mb-2">政府認證</h3>
+                    <p class="text-gray-600">NCC合格登記電信業者</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="text-4xl mb-4 text-blue-600">📞</div>
+                    <h3 class="font-semibold text-xl mb-2">24H線上客服</h3>
+                    <p class="text-gray-600">在地工程快速服務</p>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <p class="text-lg mb-4">📌 補充連結：</p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-6">
+                    <a href="https://www.ncc.gov.tw/chinese/news.aspx?site_content_sn=5666" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 font-medium text-lg flex items-center justify-center transition duration-300">
+                        👉 NCC電信登記查詢
+                        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0l-7 7m7-7v6"></path></svg>
+                    </a>
+                    <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-lg flex items-center justify-center transition duration-300">
+                        👉 客戶滿意見證（影片或文字摘錄）
+                        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0010 14.17V9.83a1 1 0 001.555-.832l3.197 2.132a1 1 0 010 1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3️⃣ 今網五大關鍵優勢（優化後為五大安心保障） -->
+    <section class="py-16 bg-gray-50 rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10 text-blue-700">
+                今網五大安心保障
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- 新增優勢：不綁約、鑑賞期 -->
+                <div class="flex flex-col md:flex-row items-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                        <img src="https://placehold.co/100x100/34d399/ffffff?text=安心" alt="申辦安心保障" class="w-24 h-24 rounded-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="font-semibold text-xl mb-2 text-blue-600">不綁約、無違約金、10天鑑賞期</h3>
+                        <p class="text-gray-700">🔹 服務不滿意可全額退費，申辦無壓力。</p>
+                    </div>
+                </div>
+                <!-- 優勢 2 (原 獨家頻寬管理技術) -->
+                <div class="flex flex-col md:flex-row items-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                        <img src="https://placehold.co/100x100/60a5fa/ffffff?text=技術" alt="獨家頻寬管理技術" class="w-24 h-24 rounded-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="font-semibold text-xl mb-2 text-blue-600">獨家頻寬管理技術 + 專利備援機房</h3>
+                        <p class="text-gray-700">🔹 尖峰時段不卡頓，斷線自動修復。</p>
+                    </div>
+                </div>
+                <!-- 優勢 3 (原 到府Wi-Fi檢測規劃) -->
+                <div class="flex flex-col md:flex-row items-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                        <img src="https://placehold.co/100x100/60a5fa/ffffff?text=Wi-Fi" alt="到府Wi-Fi檢測規劃" class="w-24 h-24 rounded-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="font-semibold text-xl mb-2 text-blue-600">到府Wi-Fi檢測規劃 + 設備永久保固</h3>
+                        <p class="text-gray-700">🔹 工程師會協助擺位與檢測訊號、保障家中每一個角落都順暢。</p>
+                    </div>
+                </div>
+                <!-- 優勢 4 (原 TP-Link AX53 專業分享器) -->
+                <div class="flex flex-col md:flex-row items-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                        <img src="https://placehold.co/100x100/60a5fa/ffffff?text=分享器" alt="TP-Link AX53 專業分享器" class="w-24 h-24 rounded-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="font-semibold text-xl mb-2 text-blue-600">TP-Link AX53 專業分享器升級不加價</h3>
+                        <p class="text-gray-700">🔹 搭載Wi-Fi 6、高乘載連線、訊號覆蓋更廣，支援OneMesh延伸技術。</p>
+                    </div>
+                </div>
+                <!-- 優勢 5 (原 雙網方案搭配多家電信) -->
+                <div class="flex flex-col md:flex-row items-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300 col-span-1 md:col-span-2 mx-auto max-w-2xl">
+                    <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                        <img src="https://placehold.co/100x100/60a5fa/ffffff?text=雙網" alt="雙網方案搭配多家電信" class="w-24 h-24 rounded-full object-cover">
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h3 class="font-semibold text-xl mb-2 text-blue-600">雙網方案搭配多家電信，最高可省8,900元</h3>
+                        <p class="text-gray-700">🔹 家用＋手機行動整合方案，今網大雙網—幫您省更多。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4️⃣ 熱門方案介紹（搭配小工具試算表） -->
+    <section id="plans" class="py-16 bg-white rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10 text-blue-700">
+                熱門方案介紹
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <!-- 方案一：最超值方案 -->
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm text-center flex flex-col justify-between hover:shadow-md transition duration-300">
+                    <div>
+                        <h3 class="font-semibold text-2xl mb-2 text-blue-600">方案一：最超值方案</h3>
+                        <p class="text-xl text-gray-800 mb-4">💰 每月平均只要 <span class="font-bold text-blue-700 text-3xl">370</span> 元，穩定首選</p>
+                        <p class="text-lg text-gray-600 mb-2">📈 上傳/下載 300M 寬頻（光纖實體線路）</p>
+                        <ul class="list-none text-left text-gray-700 space-y-1 mb-4">
+                            <li>✅ 不綁約，無違約金</li>
+                            <li>✅ 支援免費暫停、10天鑑賞全額退費</li>
+                            <li>✅ 3或6期 0利率分期</li>
+                        </ul>
+                    </div>
+                    <a href="https://forms.gle/S3k7wq2EoNNedtcq8" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 mt-4">
+                        立即選這個方案
+                    </a>
+                </div>
+
+                <!-- 方案二：彈性首選 -->
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm text-center flex flex-col justify-between hover:shadow-md transition duration-300">
+                    <div>
+                        <h3 class="font-semibold text-2xl mb-2 text-blue-600">方案二：彈性首選</h3>
+                        <p class="text-xl text-gray-800 mb-4">📦 每月約 <span class="font-bold text-blue-700 text-3xl">428</span> 元，適合租屋/短期需求</p>
+                        <p class="text-lg text-gray-600 mb-2">📈 同樣享有 300M 上下載對稱網速</p>
+                        <ul class="list-none text-left text-gray-700 space-y-1 mb-4">
+                            <li>✔ 同步享有免費暫停＋退費保障</li>
+                            <li>✔ 可刷卡3期分期</li>
+                        </ul>
+                    </div>
+                    <a href="https://forms.gle/S3k7wq2EoNNedtcq8" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 mt-4">
+                        查看此方案
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 🟩【方案比較表（建議表格設計呈現）】 -->
+    <section class="py-16 bg-gray-100 rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10 text-blue-700">
+                方案比較表
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-lg shadow-md">
+                    <thead>
+                        <tr class="bg-blue-100 text-blue-800">
+                            <th class="py-3 px-4 text-left font-semibold rounded-tl-lg">項目</th>
+                            <th class="py-3 px-4 text-left font-semibold">方案一 (24個月)</th>
+                            <th class="py-3 px-4 text-left font-semibold rounded-tr-lg">方案二 (14個月)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-4">合約期間</td>
+                            <td class="py-3 px-4">24 個月</td>
+                            <td class="py-3 px-4">14 個月</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <td class="py-3 px-4">總費用</td>
+                            <td class="py-3 px-4">8,900 元</td>
+                            <td class="py-3 px-4">6,000 元</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-4">月均價</td>
+                            <td class="py-3 px-4">370 元</td>
+                            <td class="py-3 px-4">428 元</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <td class="py-3 px-4">網路速度</td>
+                            <td class="py-3 px-4">上傳/下載 300M</td>
+                            <td class="py-3 px-4">上傳/下載 300M</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-4">綁約/違約金</td>
+                            <td class="py-3 px-4">不綁約，無違約金</td>
+                            <td class="py-3 px-4">不綁約，無違約金</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <td class="py-3 px-4">免費暫停</td>
+                            <td class="py-3 px-4">支援</td>
+                            <td class="py-3 px-4">支援</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-4">10天鑑賞期退費</td>
+                            <td class="py-3 px-4">全額退費</td>
+                            <td class="py-3 px-4">全額退費</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <td class="py-3 px-4">分期付款</td>
+                            <td class="py-3 px-4">可刷卡3或6期0利率</td>
+                            <td class="py-3 px-4">可刷卡3期0利率</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4">適合對象</td>
+                            <td class="py-3 px-4">追求長期穩定、超值價格</td>
+                            <td class="py-3 px-4">租屋族、短期使用需求</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <td class="py-3 px-4 rounded-bl-lg">可否退費</td>
+                            <td class="py-3 px-4">可 (詳情請見下方說明)</td>
+                            <td class="py-3 px-4 rounded-br-lg">可 (詳情請見下方說明)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-left text-gray-700 text-sm mt-6 space-y-2">
+                <p class="font-bold text-blue-700">【費用預繳；用不完可申請退費】</p>
+                <p class="font-bold text-blue-600">【使用滿一年】退費：</p>
+                <p class="ml-4">只扣$200元手續費；剩餘月份按天數比例退還</p>
+                <p class="font-bold text-blue-600">【使用未滿一年】退費：</p>
+                <p class="ml-4">需扣$1200元施工費+ $200元手續費；剩餘月份按天數比例退還</p>
+                <p class="mt-4">寬頻速度以社區實際頻寬為主</p>
+                <p>
+                    今網寛頻保留隨時修改、終止或暫停本活動之權利，更多詳情資費方案請參照
+                    <a href="https://top1.kingnet.net.tw/" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700">今網寛頻網站公告</a>為主。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 【Wi-Fi分享器加購區塊】 -->
+    <section class="py-16 bg-white rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-10 text-blue-700">
+                今網 Wi-Fi 分享器說明
+            </h2>
+            <div class="flex flex-col md:flex-row items-center justify-center md:space-x-8">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <img src="image_a95f3b.png" alt="TP-Link AX53 分享器" class="rounded-xl shadow-lg mx-auto">
+                </div>
+                <div class="md:w-1/2 text-left">
+                    <ul class="list-none text-gray-700 space-y-3 text-lg">
+                        <li>業界唯一 提供永久保固 設備故障 幫您換新</li>
+                        <li>市價1800-1900，我們只要1500</li>
+                        <li>工程師到府 Wi-Fi 環境檢測，別的業者沒有。</li>
+                    </ul>
+                    <p class="text-lg text-gray-700 mt-6">
+                        詳請看：<a href="https://top1.kingnet.net.tw/wifishare.html" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700">https://top1.kingnet.net.tw/wifishare.html</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 【影音＋見證區塊（可選影片或圖片區）】 -->
+    <section class="py-16 bg-gray-50 rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-10 text-blue-700">
+                超過 15 萬用戶選擇今網，他們怎麼說：
+            </h2>
+            <div class="text-left text-lg text-gray-700 space-y-3 mb-8 max-w-2xl mx-auto">
+                <p>▶「爸媽的網路問題，只有今網解得了」</p>
+                <p>▶「從地下室Wi-Fi到家中每一角落，今網都幫我顧到了」</p>
+                <p>▶「我選AX53，訊號比之前強10倍」</p>
+            </div>
+            <p class="text-xl font-semibold text-blue-600 mb-10">
+                📌 已經服務全台 10,000 棟社區｜工程師在地到府
+            </p>
+
+            <!-- 精選影片推薦 -->
+            <h3 class="font-semibold text-2xl mb-6 text-blue-700">精選影片推薦</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h4 class="font-semibold text-lg mb-3 text-blue-600">1️⃣ 只有今網能解決你爸媽的網路問題</h4>
+                    <div class="relative w-full" style="padding-bottom: 56.25%;">
+                        <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/rIGfP1UlsKc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <a href="https://www.youtube.com/watch?v=rIGfP1UlsKc" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 text-sm mt-3 inline-block">👉 ▶ 觀看影片</a>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h4 class="font-semibold text-lg mb-3 text-blue-600">2️⃣ 智慧電視無法上網怎麼辦？2步驟輕鬆搞定！</h4>
+                    <div class="relative w-full" style="padding-bottom: 56.25%;">
+                        <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/f90Xv4A1hXo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <a href="https://www.youtube.com/watch?v=f90Xv4A1hXo" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 text-sm mt-3 inline-block">👉 ▶ 觀看影片</a>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h4 class="font-semibold text-lg mb-3 text-blue-600">3️⃣ 社區用戶怎麼說：為什麼都換用今網？</h4>
+                    <div class="relative w-full" style="padding-bottom: 56.25%;">
+                        <iframe class="absolute top-0 left-0 w-full h-full rounded-lg shadow-md" src="https://www.youtube.com/embed/OjL4CRKpEcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <a href="https://www.youtube.com/watch?v=OjL4CRKpEcQ" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 text-sm mt-3 inline-block">👉 ▶ 觀看影片</a>
+                </div>
+            </div>
+
+            <h3 class="font-semibold text-2xl mb-6 text-blue-700">客戶五星好評</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm text-center">
+                    <p class="text-yellow-500 text-3xl mb-3">🌟🌟🌟🌟🌟</p>
+                    <p class="italic text-gray-700 mb-4">「工程師很專業，上網預約後專人接洽快速，也立刻就安排安裝，CP值高！推薦」</p>
+                    <p class="font-semibold text-blue-600">—— 江翠美學 陳小姐</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm text-center">
+                    <p class="text-yellow-500 text-3xl mb-3">🌟🌟🌟🌟🌟</p>
+                    <p class="italic text-gray-700 mb-4">「非常謝謝工程師，非常仔細用心的安裝以及很耐心細心的為我這3C絕緣體做講解。很讓人放心的公司」</p>
+                    <p class="font-semibold text-blue-600">—— 世貿國際 林先生</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl shadow-sm text-center">
+                    <p class="text-yellow-500 text-3xl mb-3">🌟🌟🌟🌟🌟</p>
+                    <p class="italic text-gray-700 mb-4">「本人聯繫過的客服及到府服務的工程師都非常專業。請你們盡力推廣進更多地區及社區。讓我無論遷移到哪都可用你們的服務。」</p>
+                    <p class="font-semibold text-blue-600">—— 君品苑 陳太太</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 【客戶常見問題】 -->
+    <section class="py-16 bg-gray-100 rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10 text-blue-700">
+                客戶常見問題
+            </h2>
+            <div class="space-y-6">
+                <!-- 新增：不綁約/鑑賞期問題 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h3 class="font-semibold text-xl mb-2 text-blue-600">📌 方案有綁約期限嗎？有沒有違約金？</h3>
+                    <p class="text-gray-700">今網的方案皆為預繳制，不綁約，沒有違約金。從裝機隔日起算，您享有 10 天鑑賞期，期間內若不滿意可申請全額退費，讓您申辦完全無後顧之憂。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h3 class="font-semibold text-xl mb-2 text-blue-600">📌 你們的設備會有資安風險嗎？</h3>
+                    <p class="text-gray-700">今網寬頻提供的所有網路設備均經過嚴格的安全檢測與認證，符合國家通訊傳播委員會 (NCC) 的規範。我們定期更新設備韌體，並提供資安防護建議，確保您的網路使用安全無虞。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h3 class="font-semibold text-xl mb-2 text-blue-600">📌 如果我搬家了怎麼辦？可以退費嗎？</h3>
+                    <p class="text-gray-700">若您因搬家而需要終止服務，請聯繫我們客服團隊。我們會依據合約條款為您辦理相關手續，並根據剩餘合約期間計算退費金額。詳細退費辦法請參閱服務合約或洽詢客服。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h3 class="font-semibold text-xl mb-2 text-blue-600">📌 我是租屋短住，也能裝嗎？</h3>
+                    <p class="text-gray-700">今網寬頻提供多種彈性方案，無論您是長期居住或短期租賃，都能找到適合您的網路服務。建議您直接聯繫我們的客服或預約裝機諮詢，我們會根據您的租期和需求，提供最划算的方案建議。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300">
+                    <h3 class="font-semibold text-xl mb-2 text-blue-600">📌 「一般家庭用 300M 網速夠嗎？」</h3>
+                    <p class="text-gray-700">
+                        300M 的速度，其實對大多數家庭來說是非常夠用的。這裡說的 300M，是下載與上傳都是 300M 的對稱光纖網路，跟一般非對稱的不同。
+                        以常見的使用情境來說：
+                    </p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1 ml-4">
+                        <li>✅ 追劇看 YouTube 或 Netflix：一部 4K 高畫質影片約需要 20-30Mbps，就算家中有 3-5 台設備同時看影片，也很順。</li>
+                        <li>✅ 線上會議／遠距上課：Zoom、Google Meet 即使多人開鏡頭，只要有 10-20Mbps 就非常穩定。</li>
+                        <li>✅ 打遊戲／Switch／PS5／手機連線：延遲低、不卡頓，尤其是我們還有專利頻寬管理技術，尖峰時段也不塞車。</li>
+                        <li>✅ 家中有 Wi-Fi 設備多：300M 對稱網速配上我們的 AX53 Wi-Fi 6 分享器，連 10 台設備都不卡。</li>
+                    </ul>
+                    <p class="text-gray-700 mt-2">
+                        所以除非您是專業影像剪接、直播主，或同時要上傳大型檔案，300M 是目前家庭用戶最推薦的主流規格，CP值也最高。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 立即預約安裝，一鍵申請今網寬頻！ -->
+    <section id="quick-apply" class="py-16 bg-white rounded-lg shadow-md mx-4 md:mx-auto max-w-6xl mt-8 px-6 mb-8">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-10 text-blue-700">
+                立即預約安裝，一鍵申請今網寬頻！
+            </h2>
+            <a href="https://forms.gle/S3k7wq2EoNNedtcq8" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 text-xl">
+                前往填寫申裝表單
+            </a>
+        </div>
+    </section>
+
+    <!-- 浮動CTA按鈕設計 -->
+    <div class="floating-cta">
+        <a href="https://forms.gle/S3k7wq2EoNNedtcq8" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg text-center transition duration-300 ease-in-out transform hover:scale-105">
+            🔵 我要申裝
+        </a>
+        <a href="https://lin.ee/tQVgdVy" target="_blank" rel="noopener noreferrer" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg text-center transition duration-300 ease-in-out transform hover:scale-105">
+            🟢 有問題，問LINE客服
+        </a>
+    </div>
+
+    <footer class="bg-blue-800 text-white py-8 text-center rounded-t-lg">
+        <p>© 2025 今網寬頻。版權所有。</p>
+    </footer>
+
+</body>
+</html>
+```
+
