@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line 客戶名單指派中心</title>
+    <!-- 載入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 設定字體為 Inter (或系統預設的無襯線字體) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f7f7f7;
+            overflow: hidden; /* 防止主體滾動 */
+        }
+        /* 模擬 Line 對話區背景 */
+        .line-chat-bg {
+            background-color: #E7EDF5;
+        }
+        /* 自定義禁用狀態的樣式 */
+        .input-disabled-custom {
+            background-color: #e0e0e0;
+            color: #777;
+            cursor: not-allowed;
+            border-color: #c0c0c0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主管派發區 (最上方的 Line 綠色區域) -->
+    <header class="bg-teal-600 text-white shadow-xl p-3 md:p-4 sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+            <h1 class="text-xl font-bold font-extrabold tracking-wider">📞 客戶名單指派中心 (主管視角)</h1>
+
+            <!-- 指派功能區塊 -->
+            <div class="flex items-center space-x-3 w-full md:w-auto">
+                <!-- 選取客戶 -->
+                <select id="client-select" class="p-2 border border-teal-500 rounded-lg text-gray-800 bg-white shadow-inner focus:ring-2 focus:ring-lime-300 transition duration-150">
+                    <option value="" disabled selected>--- 選取客戶名單 ---</option>
+                    <option value="A001">張先生 (高潛力)</option>
+                    <option value="B002">王小姐 (待聯繫)</option>
+                    <option value="C003">李經理 (已報價)</option>
+                </select>
+
+                <!-- 指派專員 (更新名稱) -->
+                <select id="agent-select" class="p-2 border border-teal-500 rounded-lg text-gray-800 bg-white shadow-inner focus:ring-2 focus:ring-lime-300 transition duration-150">
+                    <option value="" disabled selected>--- 指派給專員 ---</option>
+                    <option value="Agent1">小瑄 (線上)</option>
+                    <option value="Agent2">小霖 (忙碌)</option>
+                    <option value="Agent3">小吳 (休假)</option>
+                    <option value="Agent4">小甄 (新進)</option>
+                </select>
+
+                <!-- 指派按鈕 (更新配色) -->
+                <button onclick="assignClient()" class="bg-lime-300 hover:bg-lime-400 text-teal-900 font-extrabold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 transform hover:scale-105 whitespace-nowrap">
+                    指派並啟動對話
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主內容區 (三欄佈局) -->
+    <main class="h-[calc(100vh-80px)] overflow-hidden">
+        <div class="grid grid-cols-12 h-full">
+
+            <!-- 輔助區塊 - 左側：待指派客戶名單 -->
+            <aside class="col-span-12 md:col-span-3 bg-white border-r border-gray-200 shadow-inner flex flex-col p-4 overflow-y-auto">
+                <!-- 名稱已更新 -->
+                <h2 class="text-lg font-semibold mb-3 text-teal-700 border-b pb-2">📂 待指派客戶名單</h2>
+
+                <!-- 搜索/過濾器 -->
+                <input type="text" placeholder="搜尋客戶名稱/編號..." class="p-2 mb-4 border border-gray-300 rounded-lg focus:ring-teal-400 focus:border-teal-400">
+
+                <!-- 客戶列表容器 -->
+                <div id="client-list-container" class="space-y-2 flex-grow">
+                    <!-- 列表項目 (使用 JS 選擇時，會高亮顯示) -->
+                    <div class="client-item p-3 bg-gray-50 hover:bg-teal-50 rounded-lg shadow-sm cursor-pointer border-l-4 border-transparent transition duration-200" data-client-id="A001">
+                        <p class="font-medium text-gray-800">張先生 <span class="text-xs text-gray-500 ml-2">#A001</span></p>
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">高潛力名單</span>
+                        <span class="text-xs text-gray-500 block mt-1">上次專員: 小霖 (2小時前更新)</span>
+                    </div>
+
+                    <div class="client-item p-3 bg-white hover:bg-teal-50 rounded-lg shadow-sm cursor-pointer border-l-4 border-teal-500 transition duration-200 active-client" data-client-id="D004">
+                        <p class="font-medium text-teal-700">林先生 <span class="text-xs text-gray-500 ml-2">#D004</span></p>
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-green-100 text-green-800 rounded-full">進行中對話</span>
+                        <span class="text-xs text-gray-500 block mt-1 font-bold text-teal-600">目前負責: 您 (5分鐘前更新)</span>
+                    </div>
+
+                    <div class="client-item p-3 bg-gray-50 hover:bg-teal-50 rounded-lg shadow-sm cursor-pointer border-l-4 border-transparent transition duration-200" data-client-id="B002">
+                        <p class="font-medium text-gray-800">王小姐 <span class="text-xs text-gray-500 ml-2">#B002</span></p>
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-red-100 text-red-800 rounded-full">待回覆</span>
+                        <span class="text-xs text-gray-500 block mt-1">上次專員: 小瑄 (昨日更新)</span>
+                    </div>
+
+                    <div class="client-item p-3 bg-gray-50 hover:bg-teal-50 rounded-lg shadow-sm cursor-pointer border-l-4 border-transparent transition duration-200" data-client-id="E005">
+                        <p class="font-medium text-gray-800">趙小姐 <span class="text-xs text-gray-500 ml-2">#E005</span></p>
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-gray-300 text-gray-800 rounded-full">新名單</span>
+                        <span class="text-xs text-gray-500 block mt-1 text-red-500 font-medium">上次專員: 未指派</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Line 對話區 (Chat Interface) -->
+            <section class="col-span-12 md:col-span-6 flex flex-col line-chat-bg border-x border-gray-300 h-full">
+                <!-- 對話標題 (Header) -->
+                <div class="p-4 bg-white shadow-md border-b border-gray-200 flex justify-between items-center z-10">
+                    <h2 class="text-xl font-bold text-gray-800">林先生 (Line ID: customer_lin)</h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm font-medium text-green-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1 fill-current" viewBox="0 0 20 20"><path d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm5-11H5V9h10v1z"/></svg>
+                            線上
+                        </span>
+                        <!-- 對話狀態視覺化 -->
+                        <span id="chat-status-visual" class="text-sm font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-600">對話中</span>
+                    </div>
+                </div>
+
+                <!-- 訊息氣泡分明區 (Messages) -->
+                <div id="chat-messages" class="flex-grow p-5 overflow-y-auto space-y-4">
+                    <!-- 客戶訊息氣泡 (白色/左側) -->
+                    <div class="flex justify-start">
+                        <div class="max-w-xs md:max-w-md bg-white p-3 rounded-t-xl rounded-br-xl shadow-md border border-gray-200">
+                            <p class="text-gray-700">您好，我對你們網站上那個「智慧型投資組合」方案很感興趣，可以多介紹一下嗎？</p>
+                            <span class="block text-xs text-gray-400 mt-1 text-right">09:30 AM</span>
+                        </div>
+                    </div>
+
+                    <!-- 專員訊息氣泡 (Line風格綠色/右側) -->
+                    <div class="flex justify-end">
+                        <div class="max-w-xs md:max-w-md bg-[#D4F8C8] p-3 rounded-t-xl rounded-bl-xl shadow-md border border-green-200">
+                            <p class="text-gray-800">林先生您好，我是專員 [您的名字]。很高興能為您服務！這個方案非常適合您目前的需求，它有兩個核心優勢...</p>
+                            <span class="block text-xs text-gray-500 mt-1 text-right">09:35 AM ✓✓</span>
+                        </div>
+                    </div>
+
+                    <!-- 客戶訊息 -->
+                    <div class="flex justify-start">
+                        <div class="max-w-xs md:max-w-md bg-white p-3 rounded-t-xl rounded-br-xl shadow-md border border-gray-200">
+                            <p class="text-gray-700">喔，聽起來不錯。請問起始投資門檻是多少？</p>
+                            <span class="block text-xs text-gray-400 mt-1 text-right">09:38 AM</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 輸入區塊 (Input) - 初始設定為其他部門輸入中 -->
+                <div class="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
+                    <input type="text" id="chat-input" 
+                        placeholder="客服 智寶 輸入訊息中" 
+                        disabled 
+                        class="flex-grow p-3 rounded-full input-disabled-custom focus:ring-teal-500 focus:border-teal-500 transition duration-150">
+                    
+                    <!-- 發送按鈕更新配色 -->
+                    <button onclick="sendMessage()" id="send-btn" disabled 
+                        class="bg-gray-400 text-white p-3 rounded-full shadow-lg transition duration-300 flex-shrink-0 cursor-not-allowed">
+                        <!-- Send Icon SVG -->
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 輔助區塊 - 右側：CRM 資料面板 -->
+            <aside class="col-span-12 md:col-span-3 bg-gray-50 border-l border-gray-200 shadow-inner flex flex-col p-4 overflow-y-auto">
+                <h2 class="text-lg font-semibold mb-3 text-teal-700 border-b pb-2">🎯 CRM 資料面板 (林先生)</h2>
+
+                <div id="crm-panel-content" class="space-y-4">
+
+                    <!-- 名單銷售狀態 -->
+                    <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-red-500">
+                        <h3 class="font-bold text-gray-700 mb-2">⭐ 名單銷售狀態 (Sales Funnel)</h3>
+                        <label for="list-status" class="text-sm block mb-1 text-gray-600">變更名單狀態:</label>
+                        <select id="list-status" class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-red-400 focus:border-red-400">
+                            <option>1. 新線索/未處理</option>
+                            <option selected>2. 聯繫中 (電話/Line)</option>
+                            <option>3. 已報價/提案</option>
+                            <option>4. 議價/合約階段</option>
+                            <option value="WON">5. 已成交 (WON)</option>
+                            <option>6. 失敗/流失 (LOST)</option>
+                        </select>
+                    </div>
+
+                    <!-- 對話狀態管理 (結束/開啟機制) -->
+                    <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-teal-500">
+                        <h3 class="font-bold text-gray-700 mb-2">✅ 對話狀態管理 (部門交接)</h3>
+                        <p id="conversation-status-indicator" class="text-lg font-bold mb-3 text-green-600">狀態: 進行中</p>
+
+                        <!-- 結束按鈕 -->
+                        <button onclick="toggleConversationStatus(true)" id="close-conversation-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg transition duration-150 shadow-md">
+                            ✅ 結束當前對話 (已完成)
+                        </button>
+                        <!-- 重新開啟按鈕 (預設隱藏) -->
+                        <button onclick="toggleConversationStatus(false)" id="open-conversation-btn" class="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition duration-150 shadow-md hidden">
+                            💬 重新開啟對話 (需跟進)
+                        </button>
+                    </div>
+
+                    <!-- 輸入控制權 (新增的關鍵區塊) -->
+                    <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-purple-500">
+                        <h3 class="font-bold text-gray-700 mb-2">⌨️ 對話控制權</h3>
+                        <!-- 預設顯示其他部門輸入中 -->
+                        <p id="control-status" class="text-sm font-bold mb-3 text-red-500">目前狀態: 客服 智寶 輸入中...</p>
+                        <button onclick="takeControl()" id="take-control-btn" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 rounded-lg transition duration-150 shadow-md">
+                            💡 取得發言權 (接手)
+                        </button>
+                        <button onclick="releaseControl()" id="release-control-btn" class="w-full mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded-lg transition duration-150 shadow-md hidden">
+                            ➡️ 釋放發言權 (完成)
+                        </button>
+                    </div>
+
+                    <!-- 基本資訊 -->
+                    <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-teal-500">
+                        <h3 class="font-bold text-gray-700 mb-2">基本資料與潛力</h3>
+                        <p class="text-sm">客戶編號: <span class="font-mono text-teal-600">#D004</span></p>
+                        <p class="text-sm">連絡電話: <span class="font-mono text-gray-600">09xx-xxx-999</span></p>
+                        <p class="text-sm">行業別: <span class="font-medium text-gray-600">科技業主管</span></p>
+                        <p class="text-sm">潛力評級: <span class="font-extrabold text-red-500">A+ (極高)</span></p>
+                    </div>
+
+                    <!-- 下次追蹤時間 -->
+                    <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-yellow-500">
+                        <h3 class="font-bold text-gray-700 mb-2">⏰ 下次追蹤排程</h3>
+                        <label for="followup-time" class="text-sm block mb-1 text-gray-600">提醒時間:</label>
+                        <input type="datetime-local" id="followup-time" value="2025-11-01T10:00" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400">
+                    </div>
+                    
+                    <!-- CRM 儲存按鈕 -->
+                    <div class="bg-white p-4 rounded-lg shadow-md border-t-4 border-gray-300">
+                        <button onclick="updateCrmFields()" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 rounded-lg transition duration-150 shadow-md">
+                            儲存所有 CRM 變動
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </main>
+
+    <!-- JavaScript 簡易互動邏輯 -->
+    <script>
+        // 全局變數
+        let activeClient = 'D004';
+        let isConversationClosed = false; // 總體對話狀態 (已結束/進行中)
+        let isCurrentDeptActive = false; // 輸入控制權 (您/其他部門)
+        
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const sendButton = document.getElementById('send-btn');
+        
+        const closeBtn = document.getElementById('close-conversation-btn');
+        const openBtn = document.getElementById('open-conversation-btn');
+        const chatStatusVisual = document.getElementById('chat-status-visual');
+        const crmStatusIndicator = document.getElementById('conversation-status-indicator');
+        const listStatusSelect = document.getElementById('list-status');
+
+        const takeControlBtn = document.getElementById('take-control-btn');
+        const releaseControlBtn = document.getElementById('release-control-btn');
+        const controlStatus = document.getElementById('control-status');
+
+
+        // 初始化：設置當前活動客戶的樣式
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.client-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const clientId = item.getAttribute('data-client-id');
+                    setActiveClient(clientId);
+                });
+            });
+            // 監聽 Enter 鍵發送訊息
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // 設置下次追蹤時間的預設值
+            const followupTimeInput = document.getElementById('followup-time');
+            if (followupTimeInput) {
+                const now = new Date();
+                now.setDate(now.getDate() + 1);
+                now.setHours(10, 0, 0, 0);
+                const isoString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().substring(0, 16);
+                followupTimeInput.value = isoString;
+            }
+            
+            // 由於 HTML 已經設定為初始情境 (其他部門輸入中)，這裡只需在 JS 中同步狀態
+            isCurrentDeptActive = false; 
+        });
+
+        // 模擬切換客戶 (更新 UI 高亮)
+        function setActiveClient(newClientId) {
+            document.querySelectorAll('.client-item').forEach(item => {
+                item.classList.remove('active-client', 'border-teal-500', 'bg-white');
+                item.classList.add('bg-gray-50', 'border-transparent');
+            });
+
+            const newItem = document.querySelector(`.client-item[data-client-id="${newClientId}"]`);
+            if (newItem) {
+                newItem.classList.add('active-client', 'border-teal-500', 'bg-white');
+                newItem.classList.remove('bg-gray-50', 'border-transparent');
+                activeClient = newClientId;
+                console.log(`已切換至客戶: ${newClientId}`);
+                
+                // 模擬狀態初始化: 預設為對話中 (不彈出提示)，但控制權為其他部門
+                toggleConversationStatus(false, true); 
+                releaseControl(true); // 模擬切換到其他客戶時，輸入權釋放給其他人
+            }
+        }
+
+        /**
+         * 結束或重新開啟當前對話，僅更新狀態標記 (不禁用輸入)
+         * @param {boolean} isClosing - true 表示結束, false 表示重新開啟
+         * @param {boolean} isInit - true 表示初始化，不彈出提示
+         */
+        function toggleConversationStatus(isClosing, isInit = false) {
+            isConversationClosed = isClosing;
+            
+            if (isClosing) {
+                // 結束操作
+                closeBtn.classList.add('hidden');
+                openBtn.classList.remove('hidden');
+                
+                // 視覺提示
+                crmStatusIndicator.textContent = '狀態: 已結束';
+                crmStatusIndicator.classList.remove('text-green-600');
+                crmStatusIndicator.classList.add('text-blue-600');
+                
+                chatStatusVisual.textContent = '已結束';
+                chatStatusVisual.classList.remove('bg-green-100', 'text-green-600');
+                chatStatusVisual.classList.add('bg-blue-100', 'text-blue-600');
+
+                if (!isInit) {
+                    // 模擬更新 CRM 名單狀態為已成交
+                    if (listStatusSelect.value !== 'WON') {
+                         listStatusSelect.value = 'WON'; 
+                    }
+                    alertCustom("對話狀態已標記為【已結束】。其他部門可查閱並重新開啟。");
+                    releaseControl(true); // 結束對話後強制釋放控制權
+                }
+            } else {
+                // 重新開啟操作
+                closeBtn.classList.remove('hidden');
+                openBtn.classList.add('hidden');
+                
+                // 視覺提示
+                crmStatusIndicator.textContent = '狀態: 進行中';
+                crmStatusIndicator.classList.remove('text-blue-600');
+                crmStatusIndicator.classList.add('text-green-600');
+
+                chatStatusVisual.textContent = '對話中';
+                chatStatusVisual.classList.remove('bg-blue-100', 'text-blue-600');
+                chatStatusVisual.classList.add('bg-green-100', 'text-green-600');
+                
+                if (!isInit) {
+                    alertCustom("對話狀態已標記為【進行中】。");
+                }
+            }
+        }
+        
+        // --- 新增：對話控制權功能 ---
+
+        // 取得輸入控制權 (變為「您」可以輸入)
+        function takeControl() {
+            isCurrentDeptActive = true;
+            
+            // 啟用輸入框和按鈕
+            chatInput.disabled = false;
+            sendButton.disabled = false;
+            
+            // 移除禁用樣式
+            chatInput.classList.remove('input-disabled-custom');
+            sendButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            sendButton.classList.add('bg-teal-600', 'hover:bg-teal-700');
+            
+            // 更新 Placeholder
+            chatInput.placeholder = "輸入您的訊息...";
+
+            // 更新控制權顯示
+            controlStatus.textContent = '目前狀態: 您正在輸入中';
+            controlStatus.classList.remove('text-red-500');
+            controlStatus.classList.add('text-purple-600');
+            
+            // 切換按鈕
+            takeControlBtn.classList.add('hidden');
+            releaseControlBtn.classList.remove('hidden');
+
+            alertCustom("已取得發言權，現在可以與客戶溝通。");
+        }
+
+        /**
+         * 釋放輸入控制權 (變為「其他部門」輸入中)
+         * @param {boolean} isInit - true 表示初始化或強制釋放，不彈出提示
+         */
+        function releaseControl(isInit = false) {
+            isCurrentDeptActive = false;
+
+            // 禁用輸入框和按鈕 (模擬其他部門正在使用)
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+
+            // 新增禁用樣式
+            chatInput.classList.add('input-disabled-custom');
+            sendButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            sendButton.classList.remove('bg-teal-600', 'hover:bg-teal-700');
+            
+            // 更新 Placeholder
+            chatInput.placeholder = "客服 智寶 輸入訊息中";
+
+            // 更新控制權顯示
+            controlStatus.textContent = '目前狀態: 客服 智寶 輸入中...';
+            controlStatus.classList.remove('text-purple-600');
+            controlStatus.classList.add('text-red-500');
+
+            // 切換按鈕
+            takeControlBtn.classList.remove('hidden');
+            releaseControlBtn.classList.add('hidden');
+            
+            if (!isInit) {
+                alertCustom("已釋放發言權，其他部門可以接手或繼續輸入。");
+            }
+        }
+
+
+        // 模擬發送訊息
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message === "") return;
+            
+            // 檢查是否擁有控制權
+            if (!isCurrentDeptActive) {
+                alertCustom("目前發言權屬於其他部門。請先點擊【💡 取得發言權 (接手)】。");
+                return;
+            }
+            
+            // 創建新的訊息氣泡 (專員/右側)
+            const newMessageHtml = `
+                <div class="flex justify-end">
+                    <div class="max-w-xs md:max-w-md bg-[#D4F8C8] p-3 rounded-t-xl rounded-bl-xl shadow-md border border-green-200">
+                        <p class="text-gray-800">${message}</p>
+                        <span class="block text-xs text-gray-500 mt-1 text-right">${new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })} ✓✓</span>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.insertAdjacentHTML('beforeend', newMessageHtml);
+            chatInput.value = '';
+            // 捲動到最底部
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // 模擬客戶回應 (可以忽略，單純讓介面看起來更生動)
+            setTimeout(() => {
+                receiveMessage("感謝您的回覆，我需要考慮一下價格。");
+            }, 1500);
+        }
+
+        // 模擬接收訊息 (客戶/左側)
+        function receiveMessage(message) {
+            const newMessageHtml = `
+                <div class="flex justify-start">
+                    <div class="max-w-xs md:max-w-md bg-white p-3 rounded-t-xl rounded-br-xl shadow-md border border-gray-200">
+                        <p class="text-gray-700">${message}</p>
+                        <span class="block text-xs text-gray-400 mt-1 text-right">${new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                </div>
+            `;
+            chatMessages.insertAdjacentHTML('beforeend', newMessageHtml);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+
+        // 模擬主管指派客戶 (派發區功能)
+        function assignClient() {
+            const client = document.getElementById('client-select').value;
+            const agent = document.getElementById('agent-select').value;
+
+            if (!client || !agent) {
+                alertCustom("請先選取客戶名單與指派專員。");
+                return;
+            }
+
+            alertCustom(`成功！已將客戶 ${client} 指派給 ${agent}，並啟動對話。`);
+            toggleConversationStatus(false, true); // 模擬指派後狀態為開啟
+            takeControl(); // 模擬指派後由自己開始輸入
+        }
+
+        // 模擬儲存 CRM 欄位
+        function updateCrmFields() {
+            const listStatus = document.getElementById('list-status').value;
+            const followupTime = document.getElementById('followup-time').value;
+
+            console.log(`儲存 CRM 變動: 
+                名單狀態: ${listStatus}, 
+                下次追蹤: ${followupTime}
+            `);
+            
+            alertCustom("CRM 欄位更新成功！已儲存名單狀態與追蹤排程。");
+        }
+
+
+        // 自定義簡易訊息彈窗取代 alert()
+        function alertCustom(message) {
+            let existingAlert = document.getElementById('custom-alert');
+            if (existingAlert) existingAlert.remove();
+
+            const alertDiv = document.createElement('div');
+            alertDiv.id = 'custom-alert';
+            alertDiv.className = 'fixed top-4 right-4 bg-teal-600 text-white p-4 rounded-xl shadow-2xl z-50 transition-all duration-300 transform scale-0 opacity-0'; 
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+
+            // 顯示彈窗
+            setTimeout(() => {
+                alertDiv.classList.add('scale-100', 'opacity-100');
+                alertDiv.classList.remove('scale-0');
+            }, 10);
+
+            // 3 秒後隱藏並移除
+            setTimeout(() => {
+                alertDiv.classList.remove('scale-100', 'opacity-100');
+                alertDiv.classList.add('scale-0', 'opacity-0');
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
