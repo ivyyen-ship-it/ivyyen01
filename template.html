@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電銷 ISP 電聯溝通模板</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Lucide Icons (用於美觀專業的圖標) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 使用 Inter 字體 */
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        /* 自定義滾動條樣式，增強美觀性 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* 隱藏原生 details/summary 的箭頭 */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        .details-icon { transition: transform 0.2s ease-in-out; }
+        details[open] .details-icon { transform: rotate(90deg); }
+        /* 確保模態框在最上層 */
+        .modal-overlay { z-index: 50; }
+        .modal-content { z-index: 51; }
+    </style>
+</head>
+<body>
+
+    <!-- 主容器：置中且最大寬度限制 -->
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-2">
+            ISP 電聯溝通模板 <span class="text-base font-medium text-blue-500 ml-3">電銷專用</span>
+        </h1>
+
+        <!-- 區塊一：核心客戶與諮詢單資訊 (固定區塊) -->
+        <div id="client-info" class="bg-white p-6 rounded-xl shadow-lg mb-8 border-t-4 border-blue-500">
+            
+            <!-- 標題：已將標籤移動至此處 -->
+            <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+                客戶資訊 (自動帶入) 
+                <i data-lucide="user" class="w-5 h-5 ml-2 text-blue-500"></i>
+                <!-- 標籤已移至此處，放在標題右側 -->
+                <span id="status-tag" class="bg-yellow-100 text-yellow-800 text-base font-semibold px-3 py-1 rounded-full ring-2 ring-yellow-400 ml-4">
+                    已約工待申裝
+                </span>
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-y-2 gap-x-6 text-sm">
+                
+                <!-- 1. 姓名 -->
+                <div class="flex items-center">
+                    <span class="font-medium text-gray-500">姓名:</span> 
+                    <span id="client-name" class="font-bold text-gray-800">王曉明</span>
+                </div>
+                
+                <!-- 2. 電話 -->
+                <div><span class="font-medium text-gray-500">電話:</span> <span id="client-phone">09XX-XXX-XXX</span></div>
+                
+                <!-- 3. 社區/化 -->
+                <div class="md:col-span-1">
+                    <span class="font-medium text-gray-500">社區/化:</span> <span id="client-community">信義大樓</span> / <span id="client-type" class="font-semibold text-green-600">光化</span>
+                </div>
+                
+                <!-- 4. 地址 (佔滿一行) -->
+                <div class="md:col-span-3"><span class="font-medium text-gray-500">地址:</span> <span id="client-address" class="truncate">台北市信義區忠孝東路一段 100 號 10 樓</span></div>
+                
+                <!-- 5. 電子郵件 (新增，佔滿一行，模擬自動帶入) -->
+                <div class="md:col-span-3"><span class="font-medium text-gray-500">Email:</span> <span id="client-email" class="text-blue-600 font-semibold">wang.xm@example.com</span></div>
+            </div>
+            
+            <hr class="my-4 border-gray-200">
+
+            <h3 class="text-lg font-semibold text-gray-700 mb-3">諮詢單資訊</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div><span class="font-medium text-gray-500">指定聯絡時間:</span> <span id="client-schedule" class="text-indigo-600 font-bold">今天下午 14:30 - 15:00</span></div>
+                <div class="md:col-span-2">
+                    <span class="font-medium text-gray-500">諮詢單備註:</span> <span id="client-note" class="text-gray-600 italic">客戶反應網路速度慢，詢問新方案。</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 溝通內容紀錄與操作區 -->
+        <div class="grid grid-cols-1 lg:col-span-3 gap-6">
+
+            <!-- 左側：主要溝通紀錄與勾選 (佔2/3) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- 區塊二：溝通內容紀錄 (主體紀錄與勾選) -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">客戶現況與報價</h2>
+                    
+                    <!-- 1. 客戶現況 -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">原業者資訊 & 住家資訊</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_info" value="競業轉換" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">競業轉換</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_info" value="新入住" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">新入住</span>
+                            </label>
+                            <span class="border-l border-gray-300 mx-2 h-6"></span>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="house_type" value="自用" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">自用</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="house_type" value="租屋" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">租屋</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 2. 報價方案 -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">報價方案 (可複選)</label>
+                        <div class="flex flex-wrap gap-6">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="plan" value="$8900/24個月" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-800 font-bold">$8900/24 個月</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="plan" value="$6000/14個月" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-800 font-bold">$6000/14 個月</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="plan" value="$5400/12個月" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-800 font-bold">$5400/12 個月</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 3. 硬體與坪數 -->
+                    <div class="mb-5 border-t pt-4 border-gray-100">
+                         <label class="block text-sm font-medium text-gray-700 mb-2">分享器 & 坪數</label>
+                         <div class="flex flex-wrap gap-4 items-center">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="hardware" value="分享器自備" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">分享器自備</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="hardware" value="考慮加購" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">考慮加購</span>
+                            </label>
+                            <span class="border-l border-gray-300 mx-2 h-6"></span>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="area" value="35坪以下" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">35 坪以下</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="area" value="35坪以上" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">35 坪以上</span>
+                            </label>
+                        </div>
+                        <!-- 光轉器：條件式顯示 -->
+                        <div id="onu-field" class="mt-3 p-3 bg-indigo-50 rounded-lg hidden">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="hardware" value="光轉器" class="rounded text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-indigo-700 font-semibold">光轉器 (光化社區專屬，請勾選)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 區塊二 B：社區與特殊需求 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">社區/公關優惠與重要提醒</h2>
+
+                    <div class="mb-5">
+                        <label class="flex items-center space-x-2 mb-2">
+                            <input type="checkbox" id="community-discount-check" class="rounded text-red-600 focus:ring-red-500">
+                            <span class="text-gray-700 font-medium">已說明社區優惠 (如有報優惠需勾選)</span>
+                        </label>
+                        <div id="community-discount-content" class="bg-red-50 p-3 text-sm text-red-700 rounded-lg border border-red-200">
+                            <span class="font-bold">社區優惠內容：</span>Q2 未產單限定社區贈品活動【2025.09.01~2025.10.31】裝機資費 $8,900 贈 500 點智生活紅利，於鑑賞期過後以簡訊發送兌換序號，可併用業務權限一個月。
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">社區特殊備註</label>
+                        <!-- (可編輯) 已移除 -->
+                        <div class="bg-blue-50 p-3 text-sm text-blue-700 rounded-lg border border-blue-200">
+                            <span class="font-bold">內容：</span>須提前跟警衛室借鑰匙
+                        </div>
+                    </div>
+
+                    <div class="mb-5 border-t pt-4 border-gray-100">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">公關優惠 & 其他</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="客介" class="rounded text-blue-600"><span>客介</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="客委員" class="rounded text-blue-600"><span>客委員</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="違約金" class="rounded text-blue-600"><span>違約金</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="其他" class="rounded text-blue-600"><span>其他</span></label>
+                        </div>
+                    </div>
+
+                    <div class="mb-5 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
+                        <span class="font-bold text-orange-700">重要提醒:</span> 本人須待雙證正本
+                    </div>
+
+                    <!-- 可展開區塊 (Accordion) -->
+                    <div class="space-y-3">
+                        <details id="toggle-dual-net" class="p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 transition duration-150">
+                            <summary class="flex justify-between items-center text-sm font-medium text-gray-700">
+                                雙網 資訊追蹤 <i data-lucide="chevron-right" class="w-5 h-5 details-icon"></i>
+                            </summary>
+                            <div class="mt-3 space-y-3 p-2 border-t border-gray-200">
+                                <div class="flex gap-4">
+                                    <label class="block text-sm font-medium text-gray-700">客戶門號:</label>
+                                    <div class="flex gap-4">
+                                        <label><input type="radio" name="mobile_provider" value="中華" class="text-blue-600">中華</label>
+                                        <label><input type="radio" name="mobile_provider" value="遠傳" class="text-blue-600">遠傳</label>
+                                        <label><input type="radio" name="mobile_provider" value="台哥大" class="text-blue-600">台哥大</label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">客戶門號合約:</label>
+                                    <input type="text" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="合約內容或到期日">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">客戶門號資費:</label>
+                                    <input type="text" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="資費方案">
+                                </div>
+                            </div>
+                        </details>
+                        
+                        <details id="toggle-media" class="p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 transition duration-150">
+                            <summary class="flex justify-between items-center text-sm font-medium text-gray-700">
+                                影視服務 需求 <i data-lucide="chevron-right" class="w-5 h-5 details-icon"></i>
+                            </summary>
+                            <div class="mt-3 space-y-3 p-2 border-t border-gray-200">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">影視服務:</label>
+                                <div class="flex flex-wrap gap-4">
+                                    <label><input type="checkbox" name="video_service" value="LiTV" class="rounded text-blue-600">LiTV</label>
+                                    <label><input type="checkbox" name="video_service" value="Hami Video" class="rounded text-blue-600">Hami Video</label>
+                                    <label><input type="checkbox" name="video_service" value="兩種考慮中" class="rounded text-blue-600">兩種考慮中</label>
+                                </div>
+                            </div>
+                        </details>
+
+                        <details id="toggle-cleaning" class="p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 transition duration-150">
+                            <summary class="flex justify-between items-center text-sm font-medium text-gray-700">
+                                家電清洗 需求 <i data-lucide="chevron-right" class="w-5 h-5 details-icon"></i>
+                            </summary>
+                            <div class="mt-3 space-y-3 p-2 border-t border-gray-200">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">清洗項目:</label>
+                                <div class="flex flex-wrap gap-4">
+                                    <label><input type="checkbox" name="cleaning_service" value="家電健診" class="rounded text-blue-600">家電健診</label>
+                                    <label><input type="checkbox" name="cleaning_service" value="家電清洗處理內容" class="rounded text-blue-600">家電清洗處理內容</label>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 備註：下次追蹤日期時間 -->
+                    <div class="mt-6 border-t pt-4">
+                        <label for="next-follow-up" class="block text-sm font-medium text-gray-700 mb-1">下次追蹤日期時間</label>
+                        <input type="datetime-local" id="next-follow-up" value="2025-10-30T18:00" class="border border-gray-300 rounded-lg p-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 右側：功能性操作區 (佔1/3) -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- 區塊三：功能性操作 -->
+                <div class="bg-white p-6 rounded-xl shadow-lg sticky top-8">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">快速操作區</h2>
+
+                    <div class="space-y-4">
+                        <button onclick="showModal('transfer')" class="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                            <i data-lucide="git-branch" class="w-5 h-5 mr-2"></i> 轉單
+                        </button>
+                        <button onclick="showModal('sms')" class="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                            <i data-lucide="message-square" class="w-5 h-5 mr-2"></i> 簡訊發送
+                        </button>
+                        <button onclick="showModal('mail')" class="w-full flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                            <i data-lucide="mail" class="w-5 h-5 mr-2"></i> Mail 發送
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 區塊四：結單與追蹤 (底部固定判斷) -->
+        <div class="mt-8 bg-white p-6 rounded-xl shadow-xl border-b-4 border-red-500">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">結單前須點選 (流程判斷)</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 判斷原因 1 -->
+                <div>
+                    <label for="reason-1" class="block text-sm font-medium text-gray-700 mb-1">判斷原因 1 (結單主分類)</label>
+                    <select id="reason-1" onchange="handleClosureReasonChange(this.value)" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-red-500 focus:border-red-500">
+                        <option value="" disabled selected>-- 請選擇結單原因 --</option>
+                        <option value="已約工">✅ 已約工 (直接進入約工系統)</option>
+                        <option value="需追蹤">🕒 需追蹤</option>
+                        <option value="未申裝">❌ 未申裝</option>
+                        <option value="無效單">🗑️ 無效單</option>
+                    </select>
+                </div>
+
+                <!-- 判斷原因 2 (條件式顯示) -->
+                <div id="reason-2-container" class="hidden">
+                    <label for="reason-2" class="block text-sm font-medium text-gray-700 mb-1">判斷原因 2 (詳細原因)</label>
+                    <select id="reason-2" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-gray-50 focus:ring-red-500 focus:border-red-500">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 儲存按鈕 -->
+            <div class="mt-6 flex justify-end">
+                <button id="save-button" onclick="saveRecord()" class="px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150">
+                    <i data-lucide="save" class="w-5 h-5 inline-block mr-2"></i> 儲存
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 模態框 (轉單/簡訊/Mail) -->
+    <div id="modal-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden modal-overlay">
+        <div id="transfer-modal" class="hidden bg-white rounded-xl shadow-2xl p-8 max-w-lg mx-auto my-12 modal-content">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">轉單作業</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">轉出部門</label>
+                    <select id="transfer-department" class="w-full border border-gray-300 rounded-lg p-2.5">
+                        <option>電銷</option><option>業務</option><option>客服</option><option>網管</option><option>電商</option><option>技術客服</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">客戶需求</label>
+                    <select id="transfer-demand" class="w-full border border-gray-300 rounded-lg p-2.5">
+                        <option>裝機諮詢</option><option>帳務問題</option><option>智生活系統問題</option><option>網路障礙問題</option><option>智生活商品問題</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">備註</label>
+                    <textarea id="transfer-note" rows="3" class="w-full border border-gray-300 rounded-lg p-2.5"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button onclick="hideModal()" class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">取消</button>
+                    <button onclick="submitTransfer()" class="px-4 py-2 border rounded-lg text-white bg-green-600 hover:bg-green-700">送出 (轉出)</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="sms-modal" class="hidden bg-white rounded-xl shadow-2xl p-8 max-w-lg mx-auto my-12 modal-content">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">簡訊發送</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">客戶手機號碼</label>
+                    <input type="text" id="sms-phone" value="09XX-XXX-XXX" class="w-full border border-gray-300 rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">罐頭簡訊內容</label>
+                    <select id="sms-template" onchange="loadSmsTemplate(this.value)" class="w-full border border-gray-300 rounded-lg p-2.5">
+                        <option value="" disabled selected>-- 選擇模板 --</option>
+                        <option value="未接">客戶未接</option>
+                        <option value="失聯">客戶失聯</option>
+                        <option value="締結">客戶已締結</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">內容編輯區</label>
+                    <textarea id="sms-content" rows="4" class="w-full border border-gray-300 rounded-lg p-2.5"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button onclick="hideModal()" class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">取消</button>
+                    <button onclick="sendSms()" class="px-4 py-2 border rounded-lg text-white bg-blue-600 hover:bg-blue-700">發送</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mail-modal" class="hidden bg-white rounded-xl shadow-2xl p-8 max-w-lg mx-auto my-12 modal-content">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Mail 發送</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">收件人 Mail</label>
+                    <!-- mail-to 的值會被 JS 自動帶入客戶 Email -->
+                    <input type="email" id="mail-to" placeholder="請輸入客戶 Email" class="w-full border border-gray-300 rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">郵件模板</label>
+                    <select id="mail-template" onchange="loadMailTemplate(this.value)" class="w-full border border-gray-300 rounded-lg p-2.5">
+                        <option value="" disabled selected>-- 選擇模板 --</option>
+                        <option value="已締結">ISP 已締結 (方案確認信)</option>
+                        <option value="未締結">ISP 未締結 (報價單)</option>
+                        <option value="考慮中">ISP 考慮中 (資訊彙整)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">內容編輯區</label>
+                    <textarea id="mail-content" rows="6" class="w-full border border-gray-300 rounded-lg p-2.5"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button onclick="hideModal()" class="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100">取消</button>
+                    <button onclick="sendMail()" class="px-4 py-2 border rounded-lg text-white bg-indigo-600 hover:bg-indigo-700">發送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 確保 Lucide 圖標正確初始化
+        lucide.createIcons();
+
+        // 判斷原因 2 的選項
+        const REASON_2_OPTIONS = {
+            '未申裝': [
+                "短繳/月繳/預費方式", "價格/優惠因素", "不符需求", "違約金過高", 
+                "報價後失聯", "設備需自購", "第四台需求", "影視須加購", "客戶不希望再去電"
+            ],
+            '無效單': [
+                "重複單", "測試", "原用戶網路/帳務問題諮詢", "聯絡資訊錯誤", 
+                "失聯(電聯多次未接)", "智生活/管理室問題諮詢"
+            ]
+        };
+
+        // 簡訊/Mail 罐頭內容
+        const TEMPLATE_CONTENT = {
+            '未接': '您好，我是[公司]的[姓名]，剛才未能成功聯繫到您，我們將稍後再撥。謝謝！',
+            '失聯': '您好，我們已嘗試聯繫您數次未果，請方便時回撥電話或回覆此簡訊。謝謝。',
+            '締結': '恭喜您完成申裝！我們已收到您的訂單，將由專人與您聯繫確認細節，謝謝您的支持。',
+            '已締結': '【ISP 方案確認信】\n\n[客戶姓名]您好，感謝您的申辦。您本次選擇的方案為 [方案名稱]，合約細節請參考附件。',
+            '未締結': '【ISP 報價資訊彙整】\n\n[客戶姓名]您好，這是您本次諮詢的 [方案名稱] 報價單與服務說明，請查閱。',
+            '考慮中': '【ISP 資訊彙整】\n\n[客戶姓名]您好，這是我們為您整理的服務資訊與優惠內容，希望能協助您做出最好的選擇。如有任何疑問，歡迎隨時來電。',
+        };
+
+        // 介面初始化檢查
+        document.addEventListener('DOMContentLoaded', () => {
+            checkCommunityType();
+        });
+
+        /**
+         * 檢查客戶類型 (乙太/光化)，決定是否顯示「光轉器」欄位。
+         */
+        function checkCommunityType() {
+            const clientType = document.getElementById('client-type').textContent.trim();
+            const onuField = document.getElementById('onu-field');
+            if (clientType === '光化') {
+                onuField.classList.remove('hidden');
+            } else {
+                onuField.classList.add('hidden');
+            }
+        }
+
+        /**
+         * 處理結單原因 1 的變動，並連動顯示/隱藏/更新判斷原因 2 的選項。
+         * @param {string} value - 選擇的判斷原因 1 值
+         */
+        function handleClosureReasonChange(value) {
+            const reason2Container = document.getElementById('reason-2-container');
+            const reason2Select = document.getElementById('reason-2');
+            
+            // 清空所有舊選項
+            reason2Select.innerHTML = '<option value="" disabled selected>-- 請選擇詳細原因 --</option>';
+
+            if (value === '已約工') {
+                // 模擬進入約工系統的流程 (實務上會導頁或觸發後端 API)
+                alert('已約工：系統導向「約工排程介面」');
+                reason2Container.classList.add('hidden');
+                return;
+            } else if (value === '需追蹤') {
+                // 僅需追蹤，不需原因 2
+                reason2Container.classList.add('hidden');
+            } else if (REASON_2_OPTIONS[value]) {
+                // 顯示原因 2 容器
+                reason2Container.classList.remove('hidden');
+                
+                // 載入對應的原因 2 選項
+                REASON_2_OPTIONS[value].forEach(reason => {
+                    const option = document.createElement('option');
+                    option.value = reason;
+                    option.textContent = reason;
+                    reason2Select.appendChild(option);
+                });
+            } else {
+                reason2Container.classList.add('hidden');
+            }
+        }
+
+        /**
+         * 顯示模態框 (轉單/簡訊/Mail)
+         * @param {string} modalId - 要顯示的模態框 ID (transfer, sms, mail)
+         */
+        function showModal(modalId) {
+            hideModal(); // 確保其他模態框已隱藏
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById(`${modalId}-modal`).classList.remove('hidden');
+            document.getElementById(`${modalId}-modal`).parentNode.classList.add('flex', 'items-center', 'justify-center');
+            
+            // --- 針對 Mail 模態框：自動帶入客戶 Email ---
+            if (modalId === 'mail') {
+                const clientEmailElement = document.getElementById('client-email');
+                const mailToInput = document.getElementById('mail-to');
+                
+                if (clientEmailElement && mailToInput) {
+                    const clientEmail = clientEmailElement.textContent.trim();
+                    mailToInput.value = clientEmail; // 自動帶入 Email
+                }
+            }
+            // ------------------------------------------
+        }
+
+        /**
+         * 隱藏所有模態框
+         */
+        function hideModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+            document.getElementById('transfer-modal').classList.add('hidden');
+            document.getElementById('sms-modal').classList.add('hidden');
+            document.getElementById('mail-modal').classList.add('hidden');
+            document.getElementById('transfer-modal').parentNode.classList.remove('flex', 'items-center', 'justify-center');
+        }
+
+        /**
+         * 載入簡訊罐頭內容
+         * @param {string} templateKey - 模板的 key (未接, 失聯, 締結)
+         */
+        function loadSmsTemplate(templateKey) {
+            document.getElementById('sms-content').value = TEMPLATE_CONTENT[templateKey] || '';
+        }
+
+        /**
+         * 載入 Mail 模板內容
+         * @param {string} templateKey - 模板的 key (已締結, 未締結, 考慮中)
+         */
+        function loadMailTemplate(templateKey) {
+            document.getElementById('mail-content').value = TEMPLATE_CONTENT[templateKey] || '';
+        }
+
+        // 模態框功能模擬
+        function submitTransfer() {
+            const dept = document.getElementById('transfer-department').value;
+            const demand = document.getElementById('transfer-demand').value;
+            console.log(`轉單至部門: ${dept}, 需求: ${demand}`);
+            alert(`已成功將此單轉出至 ${dept} 部門處理。`);
+            hideModal();
+        }
+        
+        function sendSms() {
+            const phone = document.getElementById('sms-phone').value;
+            const content = document.getElementById('sms-content').value;
+            console.log(`發送簡訊至 ${phone}, 內容: ${content}`);
+            alert(`簡訊已發送至 ${phone}`);
+            hideModal();
+        }
+
+        function sendMail() {
+            const email = document.getElementById('mail-to').value;
+            const content = document.getElementById('mail-content').value;
+            console.log(`發送 Mail 至 ${email}, 內容: ${content}`);
+            alert(`Mail 已發送至 ${email}`);
+            hideModal();
+        }
+
+
+        /**
+         * 儲存紀錄 (核心功能，模擬資料收集與儲存)
+         */
+        function saveRecord() {
+            // 檢查結單判斷是否完成
+            const reason1 = document.getElementById('reason-1').value;
+            if (!reason1) {
+                alert('結單前請務必點選「判斷原因 1」！');
+                return;
+            }
+
+            // 收集所有數據 (僅為範例，實際應組織為 JSON 結構)
+            const followUpDate = document.getElementById('next-follow-up').value;
+            const clientInfo = {
+                name: document.getElementById('client-name').textContent,
+                communityType: document.getElementById('client-type').textContent,
+                statusTag: document.getElementById('status-tag').textContent.trim()
+            };
+            
+            const closureData = {
+                reason1: reason1,
+                reason2: reason1 === '未申裝' || reason1 === '無效單' ? document.getElementById('reason-2').value : 'N/A',
+                nextFollowUp: followUpDate
+            };
+            
+            console.log("--- 紀錄已儲存 ---");
+            console.log("客戶資訊:", clientInfo);
+            console.log("結單數據:", closureData);
+            alert('溝通紀錄已成功儲存！');
+        }
+
+    </script>
+
+</body>
+</html>
