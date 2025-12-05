@@ -1,0 +1,673 @@
+<!-- Chosen Palette: Indigo/Green Minimalist -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今網大雙網客戶工項自動化介面 V2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styling for Inter font and chart container control */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+TC:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom styling for inputs */
+        .form-select {
+            transition: all 0.15s ease-in-out;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%234B5563' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3csvg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        }
+        /* Adjusted font size for primary output text */
+        .primary-output-text {
+            font-size: 1.25rem; /* Smaller text for primary output (was 1.5rem) */
+            font-weight: 700;
+            color: #4338CA; /* Indigo 700 */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <!-- Main Content Container -->
+    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
+        
+        <!-- Header Section -->
+        <header class="p-6 bg-indigo-700 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center rounded-t-xl">
+            <h1 class="text-2xl font-bold tracking-tight mb-2 sm:mb-0">今網大雙網客戶工項自動化介面</h1>
+            <span class="text-sm opacity-80 font-medium bg-indigo-800 px-3 py-1 rounded-full">工項邏輯驗證與輸出</span>
+        </header>
+
+        <div class="p-6 sm:p-8 lg:flex lg:space-x-8 lg:items-stretch">
+            
+            <!-- 1. Form Section 填寫區 (Input Area) -->
+            <div class="lg:w-3/5 space-y-6">
+                <h2 class="text-xl font-semibold mb-6 pb-2 border-b border-gray-200 text-indigo-800 flex items-center">
+                    <span class="mr-2">📝</span>
+                    客戶情境設定區 (即時運算工項)
+                </h2>
+
+                <form id="workOrderForm" class="space-y-6">
+                    
+                    <!-- 區塊一：方案資訊 (用於標題或備註) -->
+                    <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-300 shadow-sm">
+                        <h3 class="text-lg font-bold mb-4 text-indigo-700 flex items-center">
+                            <span class="mr-2 text-xl">❶</span>
+                            區塊一：方案資訊 (用於速記與標題)
+                        </h3>
+                        <!-- Grid updated to 4 columns -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            
+                            <!-- 方案狀態 (Select) -->
+                            <div class="space-y-1">
+                                <label for="planStatus" class="block text-sm font-medium text-gray-700">方案狀態 <span class="text-red-500">*</span></label>
+                                <select id="planStatus" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <option value="新辦">新辦</option>
+                                    <option value="攜碼">攜碼</option>
+                                    <option value="續約">續約</option> <!-- 新增選項 -->
+                                </select>
+                            </div>
+
+                            <!-- 申辦電信 (Select) -->
+                            <div class="space-y-1">
+                                <label for="telecomProvider" class="block text-sm font-medium text-gray-700">申辦電信 <span class="text-red-500">*</span></label>
+                                <select id="telecomProvider" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <option value="中華">中華</option>
+                                    <option value="遠傳">遠傳</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 月資費 (Select) -->
+                            <div class="space-y-1">
+                                <label for="monthlyFee" class="block text-sm font-medium text-gray-700">月資費 <span class="text-red-500">*</span></label>
+                                <select id="monthlyFee" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <!-- Options populated by JS -->
+                                </select>
+                            </div>
+
+                            <!-- 網路月份 (Select) -->
+                            <div class="space-y-1">
+                                <label for="internetMonths" class="block text-sm font-medium text-gray-700">網路月份 <span class="text-red-500">*</span></label>
+                                <select id="internetMonths" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <!-- Options populated by JS dynamically based on plan status and telecom provider -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 區塊二：細節與工項依據 (剩下欄位) -->
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-300 shadow-sm">
+                        <h3 class="text-lg font-bold mb-4 text-gray-700 flex items-center">
+                            <span class="mr-2 text-xl">❷</span>
+                            區塊二：工項計算細節
+                        </h3>
+                        <!-- Input Grid for Block 2 (now only 4 fields) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            <!-- 今網網路 (Select) -->
+                            <div class="space-y-1">
+                                <label for="jingnetStatus" class="block text-sm font-medium text-gray-700">今網網路 <span class="text-red-500">*</span></label>
+                                <select id="jingnetStatus" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <option value="新裝機已付款">新裝機已付款</option>
+                                    <option value="新裝機未付款">新裝機未付款</option>
+                                    <option value="期中客">期中客</option>
+                                    <option value="續約客已付款">續約客已付款</option>
+                                    <option value="續約客未付款">續約客未付款</option>
+                                </select>
+                            </div>
+
+                            <!-- 原電信合約 (Select) -->
+                            <div class="space-y-1">
+                                <label for="originalContract" class="block text-sm font-medium text-gray-700">原電信合約 <span class="text-red-500">*</span></label>
+                                <select id="originalContract" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <option value="須解約">須解約</option>
+                                    <option value="無合約">無合約</option>
+                                    <option value="28天內">28天內</option>
+                                    <option value="無">無</option> <!-- 新增選項 -->
+                                </select>
+                            </div>
+                            
+                            <!-- 款項 (Select) -->
+                            <div class="space-y-1">
+                                <label for="paymentType" class="block text-sm font-medium text-gray-700">款項 <span class="text-red-500">*</span></label>
+                                <select id="paymentType" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option> 
+                                    <option value="預繳金">預繳金</option>
+                                    <option value="無">無</option>
+                                </select>
+                            </div>
+                            
+                            <!-- SIM卡 (Select) -->
+                            <div class="space-y-1">
+                                <label for="simDelivery" class="block text-sm font-medium text-gray-700">SIM卡派送方式 <span class="text-red-500">*</span></label>
+                                <select id="simDelivery" class="form-select w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                                    <option value="" selected>請選擇</option>
+                                    <!-- Options populated by JS dynamically based on telecom provider -->
+                                </select>
+                            </div>
+                            
+                        </div>
+
+                        <!-- 其他工項(請說明) -->
+                        <div class="space-y-1 pt-6">
+                            <label for="otherTaskDescription" class="block text-sm font-medium text-gray-700">其他工項說明 (若有則會自動加入清單)</label>
+                            <textarea id="otherTaskDescription" rows="2" placeholder="請輸入需要手動追蹤或特殊處理的任務說明" class="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"></textarea>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- 2. Output Section 工項區 (Result Area) -->
+            <div class="lg:w-2/5 mt-8 lg:mt-0 space-y-8">
+                
+                <!-- === Primary Output (區塊一結果) === -->
+                <div class="p-0">
+                    <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-indigo-200 text-indigo-700 flex items-center">
+                        <span class="mr-2">💡</span>
+                        區塊一：方案速記 (快速複製用)
+                    </h2>
+                    
+                    <div id="primaryOutput" class="p-4 border-2 border-indigo-500 rounded-xl bg-indigo-50 min-h-16 shadow-inner transition duration-300 flex items-center justify-center">
+                        <p class="text-gray-500 italic">請在左側填寫區塊一資訊</p>
+                    </div>
+                    
+                    <button id="copyPrimaryButton" class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-lg transition duration-150 ease-in-out transform hover:scale-[1.005] flex items-center justify-center">
+                        <span class="mr-2">📋</span>
+                        複製方案速記
+                    </button>
+                </div>
+
+
+                <!-- === Secondary Output (區塊二結果/工項清單) -->
+                <div class="p-0">
+                    <h2 class="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 text-green-700 flex items-center">
+                        <span class="mr-2">✅</span>
+                        區塊二：自動產出工項清單
+                    </h2>
+                    
+                    <!-- Work Items Output -->
+                    <div id="workItemsOutput" class="space-y-4 p-4 border-2 border-green-300 rounded-xl bg-green-50 min-h-64 shadow-inner transition duration-300">
+                        <p class="text-gray-500 italic text-center pt-8">請在左側完整填寫所有客戶資訊，工項會即時自動生成。</p>
+                    </div>
+                    
+                    <!-- Red Warning for Chunghwa Mid-Term -->
+                    <div id="chunghwaMidTermWarning" class="hidden mt-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 font-semibold rounded-lg text-sm shadow-md">
+                        <!-- 提醒語將由 JavaScript 載入 -->
+                    </div>
+
+                    <!-- Action Button & Confirmation -->
+                    <button id="copyWorkItemsButton" class="mt-6 w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transition duration-150 ease-in-out transform hover:scale-[1.005] flex items-center justify-center">
+                        <span class="mr-2">📝</span>
+                        複製工項清單
+                    </button>
+                </div>
+                
+                <div id="confirmationMessage" class="hidden mt-4 p-3 text-center rounded-lg font-medium shadow-md">
+                    <!-- Confirmation message will appear here -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('workOrderForm');
+            
+            // Output elements for Primary Section (Block 1)
+            const primaryOutputDiv = document.getElementById('primaryOutput');
+            const copyPrimaryButton = document.getElementById('copyPrimaryButton');
+
+            // Output elements for Secondary Section (Block 2)
+            const workItemsOutputDiv = document.getElementById('workItemsOutput');
+            const copyWorkItemsButton = document.getElementById('copyWorkItemsButton');
+            
+            const confirmationMessage = document.getElementById('confirmationMessage');
+            const chunghwaMidTermWarning = document.getElementById('chunghwaMidTermWarning');
+            
+            // 取得所有 Select 元素
+            const telecomProviderSelect = document.getElementById('telecomProvider');
+            const monthlyFeeSelect = document.getElementById('monthlyFee');
+            const originalContractSelect = document.getElementById('originalContract'); // 原電信合約
+            const simDeliverySelect = document.getElementById('simDelivery'); 
+            const planStatusSelect = document.getElementById('planStatus'); 
+            const internetMonthsSelect = document.getElementById('internetMonths'); // 取得網路月份元素
+            
+            // 定義所有資費選項
+            const allFees = ["399", "599", "699", "799", "999", "1399"];
+
+            // 定義所有 SIM 卡派送選項
+            const allSimDeliveryOptions = [
+                { value: "親送", label: "親送" },
+                { value: "寄卡", label: "寄卡" },
+                { value: "送卡", label: "送卡" },
+                { value: "至公司取卡", label: "至公司取卡" },
+                { value: "eSIM", label: "eSIM" },
+                { value: "台中取卡", label: "台中取卡" },
+                { value: "無須派送", label: "無須派送" }, // 新增選項
+            ];
+            
+            // 定義所有網路月份選項 (其他情境)
+            const defaultInternetMonths = [
+                "24+1", "24+2", "24+3", "24+4", 
+                "3", "4", "8", "9", "13", "16", "19", 
+                "24", "30"
+            ];
+
+            // 續約中華專屬選項 (New requirement)
+            const renewalChunghwaMonths = [
+                "3", "5", "8", "9", "14", "21", 
+                "24", "24+2", "24+4"
+            ];
+
+
+            /**
+             * 根據申辦電信更新月資費選項。
+             */
+            function updateMonthlyFeeOptions(selectedProvider) {
+                const currentFee = monthlyFeeSelect.value;
+                monthlyFeeSelect.innerHTML = '<option value="">請選擇</option>';
+
+                if (!selectedProvider) {
+                    // 如果沒有選擇電信，只顯示「請選擇」
+                    return;
+                }
+
+                let feesToShow = allFees;
+
+                if (selectedProvider === '遠傳') {
+                    // 遠傳移除 699
+                    feesToShow = allFees.filter(fee => fee !== "699");
+                } else if (selectedProvider === '中華') {
+                    // 中華移除 399
+                    feesToShow = allFees.filter(fee => fee !== "399");
+                }
+
+                feesToShow.forEach(fee => {
+                    const option = document.createElement('option');
+                    option.value = fee;
+                    option.textContent = fee;
+                    monthlyFeeSelect.appendChild(option);
+                });
+
+                // 嘗試還原選中的值，如果舊值被過濾掉則清空
+                if (feesToShow.includes(currentFee)) {
+                    monthlyFeeSelect.value = currentFee;
+                } else {
+                    monthlyFeeSelect.value = ""; 
+                }
+            }
+            
+            /**
+             * 根據申辦電信動態更新 SIM 卡派送方式選項，實現過濾需求。
+             */
+            function updateSimDeliveryOptions(selectedProvider) {
+                const currentSimDelivery = simDeliverySelect.value;
+                simDeliverySelect.innerHTML = '<option value="">請選擇</option>';
+
+                if (!selectedProvider) {
+                    // 如果沒有選擇電信，只顯示「請選擇」
+                    return;
+                }
+
+                let allowedOptions = allSimDeliveryOptions;
+
+                if (selectedProvider === '中華') {
+                    // 中華不要親送
+                    allowedOptions = allowedOptions.filter(opt => opt.value !== "親送");
+                } else if (selectedProvider === '遠傳') {
+                    // 遠傳不要有至公司取卡、eSIM
+                    allowedOptions = allowedOptions.filter(opt => opt.value !== "至公司取卡" && opt.value !== "eSIM");
+                }
+                
+                allowedOptions.forEach(optionDef => {
+                    const option = document.createElement('option');
+                    option.value = optionDef.value;
+                    option.textContent = optionDef.label;
+                    simDeliverySelect.appendChild(option);
+                });
+
+                // 嘗試還原選中的值，如果被過濾掉則清空
+                if (allowedOptions.some(opt => opt.value === currentSimDelivery)) {
+                    simDeliverySelect.value = currentSimDelivery;
+                } else {
+                    simDeliverySelect.value = "";
+                }
+            }
+            
+            /**
+             * 根據方案狀態和申辦電信更新網路月份選項。
+             */
+            function updateInternetMonthsOptions() {
+                const planStatus = planStatusSelect.value;
+                const telecomProvider = telecomProviderSelect.value;
+                const currentMonths = internetMonthsSelect.value;
+                
+                internetMonthsSelect.innerHTML = '<option value="">請選擇</option>';
+
+                if (!planStatus || !telecomProvider) {
+                    // 如果關鍵欄位未選，則不填充選項
+                    return;
+                }
+
+                let monthsToShow;
+
+                // 判斷是否為「續約中華」
+                if (planStatus === '續約' && telecomProvider === '中華') {
+                    monthsToShow = renewalChunghwaMonths;
+                } else {
+                    monthsToShow = defaultInternetMonths;
+                }
+
+                monthsToShow.forEach(month => {
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = month;
+                    internetMonthsSelect.appendChild(option);
+                });
+
+                // 嘗試還原選中的值，如果舊值被過濾掉則清空
+                if (monthsToShow.includes(currentMonths)) {
+                    internetMonthsSelect.value = currentMonths;
+                } else {
+                    internetMonthsSelect.value = ""; 
+                }
+            }
+
+
+            /**
+             * 處理「續約中華」情境下的預設值設定。
+             * 僅在 planStatus 變為 '續約' 時自動帶入 '中華' 及其他相關預設值。
+             */
+            function handleRenewalChunghwaDefaults() {
+                const planStatus = planStatusSelect.value;
+                
+                if (planStatus === '續約') {
+                    // 1. 自動帶入 '中華'
+                    telecomProviderSelect.value = '中華';
+                    
+                    // 2. 確保動態選項更新 (先載入正確的資費、SIM 卡和網路月份選項清單)
+                    updateMonthlyFeeOptions('中華');
+                    updateSimDeliveryOptions('中華'); 
+                    // updateInternetMonthsOptions() 會在 planStatus change event 結束後呼叫
+                    
+                    // 3. 帶入續約中華的預設值 (此時選項已存在，設定值會穩定生效)
+                    originalContractSelect.value = '無';
+                    simDeliverySelect.value = '無須派送'; 
+                    
+                } else {
+                    // 如果不是 '續約'，則不自動帶入，讓用戶手動選擇。
+                    
+                    // BUT: 如果 telecomProvider 還是空值，要確保選項清單是空的
+                    if (telecomProviderSelect.value === "") {
+                        updateMonthlyFeeOptions("");
+                        updateSimDeliveryOptions("");
+                        // updateInternetMonthsOptions() 會在 planStatus change event 結束後呼叫
+                    }
+                }
+            }
+
+
+            // 工項邏輯定義 (Work Item Rules)
+            const workItemRules = [
+                // 基礎工項 
+                { name: "改新裝機工單", condition: (v) => v.jingnetStatus === "新裝機未付款", category: "General" },
+                // FIX: 新增條件 v.paymentType !== "無"，只有款項非「無」時才需要核對
+                { name: "預繳金/匯款資料核對", condition: (v) => v.telecomProvider === "中華" && v.paymentType !== "無", category: "Finance" },
+                { name: "中華上二階", condition: (v) => v.telecomProvider === "中華", category: "General" },
+                { name: "違約單據上傳、送會辦", condition: (v) => v.originalContract === "須解約", category: "Contract" }, 
+                { name: "主業權贈送", condition: (v) => v.jingnetStatus.includes("新裝機") || v.jingnetStatus.includes("續約客"), category: "General" },
+                
+                // 退費與結單
+                { name: "退費(請確認客戶已繳費、已裝機，金額請貼記事本)", condition: (v) => v.jingnetStatus === "新裝機已付款" || v.jingnetStatus === "續約客已付款", category: "Refund" },
+                { name: "Chat─結單(會計)(請先確認客戶已繳費、已裝機)", condition: (v) => v.jingnetStatus.includes("續約客") || v.jingnetStatus.includes("期中客"), category: "Settlement" },
+                
+                // === 派送與 Chat 邏輯 - 續約中華優化後版本 ===
+                
+                // 1. Chat─寄送群: (維持舊有條件) OR (新增: 續約中華，即使是無須派送也要觸發)
+                { 
+                    name: "Chat─寄送群", 
+                    condition: (v) => (v.planStatus === '續約' && v.telecomProvider === '中華') || // 續約中華，強制觸發
+                                     ["寄卡", "親送", "eSIM"].includes(v.simDelivery) || 
+                                     (v.telecomProvider === "遠傳" && v.simDelivery === "台中取卡"),
+                    category: "Chat" 
+                },
+                
+                // 2. Chat--中華拍照群: 排除續約中華 (planStatus !== '續約')
+                { 
+                    name: "Chat--中華拍照群", 
+                    condition: (v) => v.telecomProvider === "中華" && v.planStatus !== '續約', 
+                    category: "Chat" 
+                },
+                
+                // 3. Chat─全區助理: (無須排除，因為續約中華的 simDelivery 預設為 '無須派送'，不會觸發此項)
+                { 
+                    name: "Chat─全區助理", 
+                    condition: (v) => v.simDelivery === "送卡",
+                    category: "Chat" 
+                },
+                
+                // 4. 更新取卡表 - **已取消此工項**
+                /*
+                { 
+                    name: "更新取卡表", 
+                    condition: (v) => (v.telecomProvider === "中華" || v.telecomProvider === "遠傳") && !(v.planStatus === '續約' && v.telecomProvider === '中華'), 
+                    category: "General" 
+                },
+                */
+                
+                // 5. 派卡網維單(無工單): (無須排除，因為續約中華的 simDelivery 預設為 '無須派送'，不會觸發此項)
+                { 
+                    name: "派卡網維單(無工單)", 
+                    condition: (v) => v.simDelivery === "送卡" && 
+                                     v.jingnetStatus !== "新裝機未付款" && 
+                                     !(v.telecomProvider === "中華" && v.jingnetStatus === "期中客"), 
+                    category: "Dispatch" 
+                },
+
+                // 6. 電商派案: 根據您的要求，改為所有情境只要表單填完就會出現
+                { name: "電商派案", condition: (v) => true, category: "Dispatch" }, 
+            ];
+
+            function calculateWorkItems() {
+                // 1. 取得所有輸入值
+                const values = {
+                    planStatus: planStatusSelect.value, 
+                    telecomProvider: telecomProviderSelect.value,
+                    monthlyFee: monthlyFeeSelect.value,
+                    internetMonths: internetMonthsSelect.value, // 使用 internetMonthsSelect.value
+
+                    // Block 2 fields
+                    jingnetStatus: document.getElementById('jingnetStatus').value,
+                    originalContract: originalContractSelect.value,
+                    paymentType: document.getElementById('paymentType').value, 
+                    simDelivery: simDeliverySelect.value,
+                    otherTaskDescription: document.getElementById('otherTaskDescription').value.trim(),
+                };
+
+                
+                // === 區塊一輸出邏輯 (Primary Output) ===
+                // 檢查區塊一所有欄位是否都有值
+                const primarySelected = values.planStatus !== "" && values.telecomProvider !== "" && values.monthlyFee !== "" && values.internetMonths !== "";
+                
+                // 組合輸出格式: [方案狀態][申辦電信][月資費]/[網路月份]
+                const primaryOutputText = primarySelected 
+                    ? `${values.planStatus}${values.telecomProvider}${values.monthlyFee}/${values.internetMonths}`
+                    : '';
+
+                if (primarySelected) {
+                    primaryOutputDiv.innerHTML = `<span class="primary-output-text">${primaryOutputText}</span>`;
+                    primaryOutputDiv.dataset.plainText = primaryOutputText;
+                } else {
+                    primaryOutputDiv.innerHTML = '<p class="text-gray-500 italic">請在左側填寫區塊一資訊</p>';
+                    primaryOutputDiv.dataset.plainText = '';
+                }
+
+                
+                // === 區塊二工項清單邏輯 (Secondary Output) ===
+                
+                // 檢查是否所有**必要**欄位都有值 (已包含 planStatus)
+                const requiredFields = [
+                    'planStatus', 'telecomProvider', 'monthlyFee', 'jingnetStatus', 
+                    'originalContract', 'internetMonths', 'paymentType', 'simDelivery'
+                ];
+
+                const allSelectedForWorkItems = requiredFields.every(key => values[key] !== "");
+
+                if (!allSelectedForWorkItems) {
+                    workItemsOutputDiv.innerHTML = '<p class="text-gray-500 italic text-center pt-8">請在左側**完整**填寫所有客戶資訊，工項會即時自動生成。</p>';
+                    chunghwaMidTermWarning.classList.add('hidden');
+                    workItemsOutputDiv.dataset.plainText = '';
+                    return;
+                }
+
+                // 2. 判斷符合的工項
+                let requiredWorkItems = workItemRules
+                    .filter(rule => rule.condition(values))
+                    .map(rule => ({ name: rule.name, category: rule.category }));
+
+                // 3. 處理互斥邏輯: 結單 vs 退費
+                const hasRefund = requiredWorkItems.some(item => item.category === "Refund");
+                if (hasRefund) {
+                    requiredWorkItems = requiredWorkItems.filter(item => item.category !== "Settlement");
+                }
+
+                // 4. 處理「其他工項(請寫任務說明)」
+                if (values.otherTaskDescription) {
+                    requiredWorkItems.push({ name: `其他(請寫任務說明): ${values.otherTaskDescription}`, category: "Other" });
+                }
+
+                // 5. 處理中華紅字提醒
+                const isChunghwa = values.telecomProvider === "中華";
+                // 警告針對非續約的中華情境
+                const warningMessage = '⚠️ 若客戶無法配合時間至公司派照取卡，請另派卡網維單';
+                
+                // 檢查是否為非續約的中華，如果是，則顯示警告。
+                if (isChunghwa && values.planStatus !== '續約') {
+                    chunghwaMidTermWarning.innerHTML = warningMessage;
+                    chunghwaMidTermWarning.classList.remove('hidden');
+                } else {
+                    chunghwaMidTermWarning.classList.add('hidden');
+                }
+
+                // 6. 產生輸出 HTML/Text
+                const finalWorkItemNames = requiredWorkItems.map(item => item.name);
+
+                if (finalWorkItemNames.length === 0) {
+                     workItemsOutputDiv.innerHTML = '<p class="text-gray-500 italic text-center pt-8">目前情境下無特殊工項需要處理，請檢查資訊。</p>';
+                     workItemsOutputDiv.dataset.plainText = '';
+                } else {
+                    const listHtml = finalWorkItemNames.map(item => 
+                        `<li class="flex items-start text-gray-800">
+                            <span class="text-green-500 mr-2 mt-0.5 text-lg flex-shrink-0">✓</span>
+                            <span class="font-medium">${item}</span>
+                        </li>`
+                    ).join('');
+                    
+                    workItemsOutputDiv.dataset.plainText = finalWorkItemNames.join('\n');
+                    workItemsOutputDiv.innerHTML = `<ul class="space-y-3 list-none p-0 m-0">${listHtml}</ul>`;
+                }
+            }
+            
+            // --- Helper Functions ---
+            function showConfirmation(message, styleClasses) {
+                confirmationMessage.textContent = message;
+                confirmationMessage.className = `mt-4 p-3 text-center rounded-lg font-medium shadow-md transition duration-300 ${styleClasses}`;
+                confirmationMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    confirmationMessage.classList.add('hidden');
+                }, 3000);
+            }
+            
+            function copyToClipboard(text, successMessage, failureMessage) {
+                if (!text || text.trim() === '') {
+                    showConfirmation('無法複製，請先填寫完畢！', 'bg-red-100 border-red-300 text-red-800');
+                    return;
+                }
+                const tempTextarea = document.createElement('textarea');
+                tempTextarea.value = text;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                try {
+                    // For security reasons in certain environments, use document.execCommand
+                    document.execCommand('copy'); 
+                    showConfirmation(successMessage, 'bg-indigo-100 border-indigo-300 text-indigo-800');
+                } catch (err) {
+                    showConfirmation(failureMessage, 'bg-red-100 border-red-300 text-red-800');
+                }
+                document.body.removeChild(tempTextarea);
+            }
+
+            // --- Event Listeners and Initialization ---
+            
+            // 監聽申辦電信的變動：更新月資費、SIM 派送、網路月份
+            telecomProviderSelect.addEventListener('change', (event) => {
+                const selectedProvider = event.target.value;
+                updateMonthlyFeeOptions(selectedProvider); 
+                updateSimDeliveryOptions(selectedProvider); 
+                updateInternetMonthsOptions(); // 新增：更新網路月份
+
+                // 遠傳自動預設款項為「無」
+                const paymentTypeSelect = document.getElementById('paymentType');
+                if (selectedProvider === '遠傳') {
+                    paymentTypeSelect.value = '無';
+                }
+
+                calculateWorkItems();
+            });
+
+            // 監聽方案狀態的變動：檢查是否要應用預設值，並更新網路月份
+            planStatusSelect.addEventListener('change', () => {
+                handleRenewalChunghwaDefaults(); // 負責自動帶入中華及相關欄位
+                updateInternetMonthsOptions(); // 新增：更新網路月份
+                calculateWorkItems();
+            });
+
+            // 即時更新 (所有欄位的變動)
+            form.addEventListener('change', calculateWorkItems);
+            form.addEventListener('input', calculateWorkItems); 
+            
+            // 複製按鈕功能 (區塊一：方案速記)
+            copyPrimaryButton.addEventListener('click', () => {
+                const plainText = primaryOutputDiv.dataset.plainText;
+                copyToClipboard(
+                    plainText, 
+                    '方案速記已成功複製到剪貼簿！', 
+                    '複製方案速記失敗，請手動複製。'
+                );
+            });
+            
+            // 複製按鈕功能 (區塊二：工項清單)
+            copyWorkItemsButton.addEventListener('click', () => {
+                const plainText = workItemsOutputDiv.dataset.plainText;
+                copyToClipboard(
+                    plainText, 
+                    '工項清單已成功複製到剪貼簿！', 
+                    '複製工項清單失敗，請手動複製。'
+                );
+            });
+
+
+            // 初始化邏輯 (DOMContentLoaded)
+            // 由於所有欄位預設都是空值，我們只需確保動態選項清單也是初始狀態
+            updateMonthlyFeeOptions(""); 
+            updateSimDeliveryOptions("");
+            updateInternetMonthsOptions(); // 確保初次載入時清單正確
+            calculateWorkItems(); // 執行初始計算，顯示「請完整填寫」
+        });
+    </script>
+</body>
+</html>
