@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名單管理中心 - 專業電銷系統介面</title>
+    <!-- 載入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 設定預設字體為 Inter 和系統中文字體 */
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #F9FAFB; /* 灰白色背景 */
+            color: #1F2937; /* 深灰色文字 */
+        }
+        .primary-purple {
+            background-color: #6B46C1; /* 主紫色 */
+        }
+        .primary-purple-text {
+            color: #6B46C1;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem; /* 大圓角 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* 柔和陰影 */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        /* Custom styles for status colors */
+        .status-佇列中 { background-color: #3B82F6; color: white; } /* 藍色 (佇列中) */
+        .status-用餐中 { background-color: #FBBF24; color: #1F2937; } /* 黃色 */
+        .status-會議中 { background-color: #10B981; color: white; } /* 綠色 */
+        .status-離開 { background-color: #EF4444; color: white; } /* 紅色 */
+
+        /* Animation for the alert card */
+        @keyframes pulse-light {
+            0%, 100% { background-color: #FFFBEB; }
+            50% { background-color: #FEF3C7; }
+        }
+        .alert-card-pulse {
+            animation: pulse-light 2s infinite ease-in-out;
+        }
+
+        /* 戰情看板分頁按鈕樣式 */
+        .dept-tab {
+            text-align: center;
+        }
+        .dept-tab.active {
+            background-color: #6B46C1; /* 主紫色 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(107, 70, 193, 0.3); /* 紫色陰影 */
+        }
+        /* Loading spinner styles */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #6B46C1;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <h1 class="text-2xl font-bold primary-purple-text">名單管理中心</h1>
+                <span class="text-sm text-gray-500 hidden sm:block">使用者：**王小明** (專業電銷主管)</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- 後台編輯按鈕 (亮紫色/藍灰色) -->
+                <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition duration-150 ease-in-out transform hover:scale-105 border-b-4 border-indigo-800 active:border-b-2 active:translate-y-0.5">
+                    後台編輯
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- 狀態選擇與計時器區塊 -->
+        <div class="bg-white p-4 sm:p-6 card mb-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-6">
+            <div class="flex items-center space-x-3 w-full md:w-auto">
+                <label for="status-select" class="text-lg font-semibold text-gray-700 whitespace-nowrap">我的狀態:</label>
+                <select id="status-select" class="form-select block w-full md:w-48 p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-50 text-base">
+                    <option value="佇列中">佇列中</option>
+                    <option value="用餐中">用餐中</option>
+                    <option value="會議中">會議中</option>
+                    <option value="離開">離開</option>
+                </select>
+            </div>
+            <!-- 當日狀態累積時間顯示 -->
+            <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium w-full md:w-auto">
+                <div class="flex items-center space-x-1">
+                    <span class="status-badge status-佇列中">佇列中</span>
+                    <span id="time-佇列中" class="text-gray-700">00:00</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span class="status-badge status-用餐中">用餐中</span>
+                    <span id="time-用餐中" class="text-gray-700">00:00</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span class="status-badge status-會議中">會議中</span>
+                    <span id="time-會議中" class="text-gray-700">00:00</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <span class="status-badge status-離開">離開</span>
+                    <span id="time-離開" class="text-gray-700">00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 追蹤提醒區塊 -->
+        <div id="reminder-alert" class="card p-4 mb-6 alert-card-pulse border-l-4 border-yellow-500">
+            <h2 class="text-xl font-bold text-yellow-800 mb-2">🚨 即將到追蹤時間的名單提醒 (1)</h2>
+            <ul class="list-disc ml-5 text-lg text-yellow-700">
+                <li class="font-semibold">名單名稱: 陳小姐 (A-1021) - 倒數時間: <span class="font-mono text-red-600">01:35</span> 分鐘</li>
+                <!-- 更多提醒名單... -->
+            </ul>
+        </div>
+
+        <!-- 戰情看板 (Dashboard) -->
+        <section class="mb-6">
+            <h2 class="text-2xl font-bold primary-purple-text mb-4">📈 戰情看板 - <span id="current-dept-title">電銷</span>部門績效</h2>
+
+            <!-- 部門切換標籤 -->
+            <div class="flex space-x-2 mb-6 p-1 bg-gray-200 rounded-xl shadow-inner max-w-xl">
+                <button data-dept="電銷" class="dept-tab active w-1/4 text-sm font-semibold py-2 px-4 rounded-xl transition duration-150 ease-in-out">電銷</button>
+                <button data-dept="客服" class="dept-tab w-1/4 text-sm font-semibold text-gray-700 hover:bg-white py-2 px-4 rounded-xl transition duration-150 ease-in-out">客服</button>
+                <button data-dept="營管" class="dept-tab w-1/4 text-sm font-semibold text-gray-700 hover:bg-white py-2 px-4 rounded-xl transition duration-150 ease-in-out">營管</button>
+                <button data-dept="電商" class="dept-tab w-1/4 text-sm font-semibold text-gray-700 hover:bg-white py-2 px-4 rounded-xl transition duration-150 ease-in-out">電商</button>
+            </div>
+
+            <!-- 儀錶板數據 -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="dashboard-data">
+                
+                <!-- 部門營運指標 (上層) - 維持四項指標，每列四個 -->
+                <div class="card p-4 text-center bg-purple-50 hover:bg-purple-100 cursor-pointer">
+                    <p class="text-sm text-gray-600">部門待處理名單</p>
+                    <p id="dept-pending" class="text-3xl font-extrabold primary-purple-text">125</p>
+                </div>
+                <div class="card p-4 text-center bg-purple-50 hover:bg-purple-100 cursor-pointer">
+                    <p class="text-sm text-gray-600">部門處理中名單</p>
+                    <p id="dept-in-progress" class="text-3xl font-extrabold primary-purple-text">88</p>
+                </div>
+                <div class="card p-4 text-center bg-purple-50 hover:bg-purple-100 cursor-pointer">
+                    <p class="text-sm text-gray-600">部門當日已締結</p>
+                    <p id="dept-closed-day" class="text-3xl font-extrabold text-green-600">5</p>
+                </div>
+                
+                <!-- 部門當月締結率 -->
+                <div class="card p-4 text-center bg-purple-50 hover:bg-purple-100 cursor-pointer">
+                    <p class="text-sm text-gray-600">部門當月締結率</p>
+                    <p id="dept-closure-rate" class="text-3xl font-extrabold text-indigo-600">10.5%</p>
+                </div>
+
+
+                <!-- 個人績效 (下層，維持四項) -->
+                <div class="card p-4 text-center bg-gray-100 hover:bg-gray-200">
+                    <p class="text-sm text-gray-600">個人待處理名單</p>
+                    <p class="text-3xl font-extrabold text-gray-800">18</p>
+                </div>
+                <div class="card p-4 text-center bg-gray-100 hover:bg-gray-200">
+                    <p class="text-sm text-gray-600">個人處理中名單</p>
+                    <p class="text-3xl font-extrabold text-gray-800">12</p>
+                </div>
+                <div class="card p-4 text-center bg-gray-100 hover:bg-gray-200">
+                    <p class="text-sm text-gray-600">個人當日已締結</p>
+                    <p class="text-3xl font-extrabold text-green-600">2</p>
+                </div>
+                <div class="card p-4 text-center bg-gray-100 hover:bg-gray-200">
+                    <p class="text-sm text-gray-600">當月個人締結率</p>
+                    <p class="text-3xl font-extrabold text-indigo-600">15.4%</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 個人負責名單 & 右側功能區 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- 左側：個人負責名單 (分類管理) - 佔 2/3 寬度 -->
+            <section class="lg:col-span-2 space-y-6">
+                <h2 class="text-2xl font-bold primary-purple-text">📋 個人負責名單 (分類管理)</h2>
+
+                <!-- 卡片 1: 未處理名單 -->
+                <div class="card p-6 border-l-4 border-red-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-red-700">未處理名單 (18 筆)</h3>
+                        <a href="#" class="text-sm text-red-500 hover:text-red-600 font-medium">查看全部 &rarr;</a>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <span>張先生 (B-2001)</span>
+                            <span class="text-xs text-red-500 font-semibold">待分派 / 3 天前</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <span>林小姐 (B-2002)</span>
+                            <span class="text-xs text-red-500 font-semibold">待分派 / 2 天前</span>
+                        </li>
+                        <li class="text-center text-sm text-gray-400">... 還有 16 筆未處理 ...</li>
+                    </ul>
+                </div>
+
+                <!-- 卡片 2: 當日需追蹤名單（追蹤警示） -->
+                <div class="card p-6 border-l-4 border-yellow-500 bg-yellow-50">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-yellow-700">⏰ 當日需追蹤名單 (3 筆)</h3>
+                        <a href="#" class="text-sm text-yellow-500 hover:text-yellow-600 font-medium">查看警示 &rarr;</a>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex justify-between items-center p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
+                            <span>王先生 (C-3005)</span>
+                            <span class="text-xs text-yellow-600 font-semibold">預計追蹤: 10:30 AM</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-white rounded-lg border border-yellow-200 shadow-sm">
+                            <span>吳小姐 (C-3006)</span>
+                            <span class="text-xs text-yellow-600 font-semibold">預計追蹤: 02:00 PM</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 卡片 3: 其他追蹤名單（未來／一般名單） -->
+                <div class="card p-6 border-l-4 border-indigo-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-indigo-700">其他追蹤名單 (98 筆)</h3>
+                        <a href="#" class="text-sm text-indigo-500 hover:text-indigo-600 font-medium">查看清單 &rarr;</a>
+                    </div>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <span>李小姐 (D-4011)</span>
+                            <span class="text-xs text-indigo-500">下次追蹤: 2024/12/15</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <span>朱先生 (D-4012)</span>
+                            <span class="text-xs text-indigo-500">下次追蹤: 2024/12/20</span>
+                        </li>
+                        <li class="text-center text-sm text-gray-400">... 還有 96 筆 ...</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 右側：名單篩選器與提醒區塊 - 佔 1/3 寬度 -->
+            <aside class="lg:col-span-1 space-y-6">
+                
+                <!-- 名單篩選器 -->
+                <div class="card p-6 bg-gray-100">
+                    <h3 class="text-xl font-semibold primary-purple-text mb-4">🔍 名單篩選器</h3>
+                    <div class="space-y-4">
+                        <!-- 追蹤時間篩選 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">追蹤時間</label>
+                            <input type="date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <!-- 結單區間 (已約工/未申裝) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">結單區間 (已約工/未申裝)</label>
+                            <div class="flex space-x-2">
+                                <input type="date" class="w-1/2 p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="date" class="w-1/2 p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <!-- 名單狀態篩選 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">名單狀態</label>
+                            <select class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                                <option>所有名單</option>
+                                <option>高潛力</option>
+                                <option>需加強聯繫</option>
+                            </select>
+                        </div>
+                        <button class="w-full primary-purple hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition duration-150">
+                            執行篩選
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NEW: AI 銷售助理區塊 -->
+                <div class="card p-6 border-l-4 border-fuchsia-500">
+                    <h3 class="text-xl font-semibold text-fuchsia-700 mb-4">🤖 AI 銷售助理</h3>
+                    <div class="space-y-4">
+                        <!-- 助理輸入框 -->
+                        <div>
+                            <label for="ai-prompt" class="block text-sm font-medium text-gray-700 mb-1">輸入需求 (e.g. 給我跟進張先生的開場白)</label>
+                            <textarea id="ai-prompt" rows="3" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-fuchsia-500 focus:border-fuchsia-500 shadow-sm" placeholder="輸入名單資訊和您的需求..."></textarea>
+                        </div>
+                        <!-- 按鈕 -->
+                        <button id="generate-script-btn" class="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-semibold py-2 rounded-lg transition duration-150 flex items-center justify-center space-x-2">
+                            <span id="button-text">生成銷售腳本/摘要</span>
+                            <div id="loading-spinner" class="spinner hidden"></div>
+                        </button>
+                        <!-- 結果顯示 -->
+                        <div id="ai-result-box" class="mt-4 p-3 bg-fuchsia-50 border border-fuchsia-200 rounded-lg min-h-[5rem] text-sm text-fuchsia-800 break-words whitespace-pre-wrap">
+                            <p class="text-gray-500 italic">AI 生成的內容將顯示在此處。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 重要事項提醒 -->
+                <div class="card p-6 border-l-4 border-pink-500">
+                    <h3 class="text-xl font-semibold text-pink-700 mb-4">🔔 重要事項提醒</h3>
+                    <div class="space-y-3">
+                        <!-- 部門公告 -->
+                        <div class="bg-pink-50 p-3 rounded-lg border border-pink-200">
+                            <p class="text-sm font-medium text-pink-800">📌 部門公告: 本週績效競賽開始，請同仁加油！</p>
+                            <span class="text-xs text-pink-500 block mt-1">發佈於 1 小時前</span>
+                        </div>
+                        <!-- 個人提醒 -->
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <p class="text-sm font-medium text-gray-700">👤 個人提醒: 待處理名單已累積 18 筆，請優先處理。</p>
+                            <span class="text-xs text-gray-400 block mt-1">系統提示</span>
+                        </div>
+                        <!-- 會議提醒 -->
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                            <p class="text-sm font-medium text-blue-800">📅 會議提醒: 每週主管例會 @ 14:00 (會議室 A)</p>
+                            <span class="text-xs text-blue-500 block mt-1">時間: 30 分鐘後</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 即將到期警示 (獨立區塊) -->
+                <div class="card p-6 border-l-4 border-orange-500 bg-orange-50">
+                    <h3 class="text-xl font-semibold text-orange-700 mb-3">⚠️ 即將到期警示 (2 筆)</h3>
+                    <ul class="space-y-2 text-sm text-orange-800">
+                        <li>潛力名單 A-01: <span class="font-semibold">剩餘 4 小時</span> (名單期限)</li>
+                        <li>高價值名單 B-05: <span class="font-semibold">剩餘 1 天</span> (優惠活動到期)</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+        // JavaScript 邏輯：處理使用者狀態切換與計時器
+
+        // 狀態計時器物件 (單位：秒)
+        const statusTimes = {
+            '佇列中': 0, // 修正後的狀態名稱
+            '用餐中': 0,
+            '會議中': 0,
+            '離開': 0
+        };
+
+        let currentStatus = '佇列中'; // 修正初始狀態
+        let startTime = Date.now();
+        let timerInterval;
+
+        const statusSelect = document.getElementById('status-select');
+
+        // 格式化時間：秒數轉換為 MM:SS 格式
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        // 更新 UI 上的時間
+        function updateTimeDisplay() {
+            for (const status in statusTimes) {
+                // 使用修正後的 ID 查找元素
+                const timeElement = document.getElementById(`time-${status}`);
+                if (timeElement) {
+                    timeElement.textContent = formatTime(statusTimes[status]);
+                }
+            }
+        }
+
+        // 計時器主邏輯
+        function startTimer() {
+            // 清除現有計時器
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            timerInterval = setInterval(() => {
+                // 每秒檢查一次
+                if (currentStatus in statusTimes) {
+                    statusTimes[currentStatus]++; // 當前狀態秒數 +1
+                    updateTimeDisplay();
+                }
+            }, 1000); // 1000 毫秒 = 1 秒
+        }
+
+        // 處理狀態切換事件
+        statusSelect.addEventListener('change', (event) => {
+            currentStatus = event.target.value;
+            // 可以加入視覺回饋，例如改變 select 框的樣式，但 Tailwind 已經處理部分
+            console.log(`狀態切換為: ${currentStatus}`);
+        });
+
+        // =========================================================
+        // 部門切換邏輯 (模擬數據載入)
+        // =========================================================
+
+        const deptTabs = document.querySelectorAll('.dept-tab');
+        const currentDeptTitle = document.getElementById('current-dept-title');
+        
+        // 模擬不同部門的部門營運指標數據
+        const deptData = {
+            '電銷': {
+                pending: 125, in_progress: 88, closed_day: 5, closure_rate: '10.5%'
+            },
+            '客服': {
+                pending: 250, in_progress: 15, closed_day: 10, closure_rate: '3.1%'
+            },
+            '營管': {
+                pending: 30, in_progress: 5, closed_day: 0, closure_rate: '0.0%'
+            },
+            '電商': {
+                pending: 99, in_progress: 50, closed_day: 8, closure_rate: '18.9%'
+            }
+        };
+
+        function updateDashboard(department) {
+            const data = deptData[department];
+            if (!data) return;
+
+            // 更新部門營運指標
+            document.getElementById('dept-pending').textContent = data.pending;
+            document.getElementById('dept-in-progress').textContent = data.in_progress;
+            document.getElementById('dept-closed-day').textContent = data.closed_day;
+            document.getElementById('dept-closure-rate').textContent = data.closure_rate;
+
+            // 更新標題
+            currentDeptTitle.textContent = department;
+        }
+
+        deptTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const selectedDept = tab.getAttribute('data-dept');
+                
+                // 移除所有按鈕的 active 樣式
+                deptTabs.forEach(t => t.classList.remove('active'));
+                
+                // 為被點擊的按鈕加上 active 樣式
+                tab.classList.add('active');
+                
+                // 模擬更新看板數據
+                updateDashboard(selectedDept);
+
+                console.log(`已切換至 ${selectedDept} 部門戰情看板`);
+            });
+        });
+
+
+        // =========================================================
+        // AI 銷售助理 (Gemini API 整合)
+        // =========================================================
+        const aiPromptTextarea = document.getElementById('ai-prompt');
+        const generateScriptBtn = document.getElementById('generate-script-btn');
+        const aiResultBox = document.getElementById('ai-result-box');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const buttonText = document.getElementById('button-text');
+
+        // 通用 API 呼叫函式 (含指數退避機制)
+        async function fetchWithBackoff(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429 && i < maxRetries - 1) {
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            throw new Error("Maximum retries reached.");
+        }
+
+        // 生成腳本/摘要
+        async function generateScript() {
+            const userQuery = aiPromptTextarea.value.trim();
+            if (!userQuery) {
+                aiResultBox.innerHTML = '<p class="text-red-500">請輸入您的需求，例如：「給我跟進李小姐（D-4011）的電銷腳本。」</p>';
+                return;
+            }
+
+            // UI 狀態：顯示載入
+            generateScriptBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            buttonText.textContent = '生成中...';
+            aiResultBox.innerHTML = '<div class="flex items-center space-x-2 text-fuchsia-600"><div class="spinner border-fuchsia-600 border-t-fuchsia-800"></div><span>AI 正在分析與撰寫...</span></div>';
+
+
+            const systemPrompt = "你是一位頂尖的電銷/客服專家，專門為台灣的銷售人員撰寫高效、專業且口語化的銷售腳本或名單摘要。請使用繁體中文，並保持簡潔、有力的語氣。直接輸出腳本或摘要，不需要任何前言或結尾。";
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            try {
+                const response = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                let generatedText = "無法取得 AI 內容。";
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    generatedText = candidate.content.parts[0].text;
+                } else if (result.error) {
+                     generatedText = `API 錯誤: ${result.error.message}`;
+                }
+
+                aiResultBox.textContent = generatedText;
+                aiResultBox.classList.remove('text-gray-500', 'italic');
+                
+            } catch (error) {
+                console.error("Gemini API Call Failed:", error);
+                aiResultBox.textContent = `❌ 網路或 API 發生錯誤: ${error.message}`;
+                aiResultBox.classList.remove('text-gray-500', 'italic');
+                aiResultBox.classList.add('text-red-600');
+            } finally {
+                // UI 狀態：恢復
+                generateScriptBtn.disabled = false;
+                loadingSpinner.classList.add('hidden');
+                buttonText.textContent = '生成銷售腳本/摘要';
+            }
+        }
+
+        // 綁定事件
+        generateScriptBtn.addEventListener('click', generateScript);
+
+
+        // =========================================================
+        // 初始化
+        // =========================================================
+        window.onload = () => {
+            // 確保當前狀態與下拉選單的初始值一致
+            currentStatus = statusSelect.value;
+            startTimer();
+            // 初始化戰情看板為「電銷」的數據
+            updateDashboard('電銷');
+        };
+
+    </script>
+</body>
+</html>
