@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>今網大雙網｜全台唯一 社區網路＋手機門號獨家優惠</title>
+  <meta name="description" content="今網大雙網：今網寬頻用戶限定，全台唯一結合家用網路＋手機門號的獨家優惠。免出門、線上10分鐘完成，SIM卡送到家。最高折抵8,900元，還可疊加親友門號。">
+  <style>
+    :root{
+      --primary:#0066CC;        /* 今網藍 */
+      --primary-600:#0058B0;
+      --primary-050:#E6F1FF;
+      --text:#1F2937;
+      --muted:#6B7280;
+      --bg:#FFFFFF;
+      --alt:#F5F7FA;
+      --ring: rgba(0,102,204,.25);
+      --radius:16px;
+      --shadow: 0 8px 24px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    html{scroll-padding-top: 20px; scroll-behavior: smooth;}
+    body{
+      margin:0; color:var(--text); background:var(--bg);
+      font:16px/1.7 system-ui,-apple-system,"Noto Sans TC","Segoe UI",Roboto,Helvetica,Arial,"PingFang TC","Microsoft JhengHei",sans-serif;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    .container{max-width:1120px;margin:0 auto;padding:0 20px}
+    .hero{
+      background:
+        radial-gradient(1200px 600px at 85% -10%, var(--primary-050), transparent 60%),
+        linear-gradient(180deg,#fff, #f9fbff 60%, #f4f8ff);
+      padding:64px 0 36px;
+      border-bottom:1px solid #e6eef9;
+    }
+    .hero h1{
+      margin:0 0 12px;
+      font-size: clamp(28px, 3.6vw, 40px);
+      line-height:1.15;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .hero p.lead{
+      margin:0 0 24px;
+      color:#26415f;
+      font-size: clamp(16px, 2.2vw, 18px);
+    }
+    .cta-row{display:flex; gap:12px; flex-wrap:wrap}
+    .btn{
+      appearance:none; border:0; padding:14px 18px; border-radius:12px;
+      font-weight:700; letter-spacing:.3px; cursor:pointer; transition:.2s transform,.2s box-shadow,.2s background-color;
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+    }
+    .btn-primary{background:var(--primary); color:#fff; box-shadow:0 8px 18px var(--ring)}
+    .btn-primary:hover{background:var(--primary-600); transform:translateY(-1px)}
+    .btn-ghost{background:#fff; color:var(--primary); border:1px solid #cfe2ff}
+    .btn-ghost:hover{background:var(--primary-050)}
+    section{padding:56px 0}
+    .section-title{
+      font-size: clamp(22px, 3vw, 28px); margin:0 0 18px; font-weight:800;
+    }
+    .muted{color:var(--muted)}
+    /* 痛點卡 */
+    .grid{display:grid; gap:18px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    @media (max-width:880px){ .grid-2,.grid-3{grid-template-columns:1fr} }
+    .card{
+      background:#fff; border:1px solid #eaeef5; border-radius:var(--radius); padding:20px;
+      box-shadow: var(--shadow);
+    }
+    .badge{
+      display:inline-block; font-size:12px; font-weight:700; color:var(--primary);
+      background:var(--primary-050); padding:6px 10px; border-radius:999px; letter-spacing:.4px;
+    }
+    .li-flex{display:flex; gap:12px; align-items:flex-start}
+    .li-flex b{display:inline-block; min-width:22px; text-align:center}
+    /* 解決方案清單 */
+    .feature{
+      display:flex; gap:12px; align-items:flex-start; padding:12px 0;
+      border-bottom:1px dashed #e9edf5;
+    }
+    .feature:last-child{border-bottom:0}
+    .feature i{font-style:normal; font-weight:800; color:var(--primary)}
+    /* 表格 */
+    .table-wrap{overflow:auto; background:#fff; border:1px solid #e7ecf5; border-radius:14px}
+    table{width:100%; border-collapse:collapse; min-width:860px}
+    thead th{
+      background:#f7faff; color:#26415f; font-weight:800; text-align:left; padding:14px 16px; font-size:14px;
+      position:sticky; top:0; z-index:1
+    }
+    tbody td{padding:14px 16px; border-top:1px solid #eef2f8; vertical-align:top}
+    tbody tr:hover{background:#fcfdff}
+    .save{
+      background: #fff7ed; border:1px solid #ffe2bf; color:#8a4b00;
+      padding:8px 10px; border-radius:10px; display:inline-block; font-weight:800;
+    }
+    .save strong{color:#c2410c}
+    /* 見證 */
+    .quote{background:#fff; border-left:6px solid var(--primary); padding:16px; border-radius:12px; box-shadow:var(--shadow)}
+    /* FAQ */
+    .faq{background:var(--alt); border:1px solid #e6ebf5; border-radius:16px; padding:10px}
+    details{background:#fff; border:1px solid #e8edf6; border-radius:12px; padding:14px 16px; margin:10px 0}
+    summary{cursor:pointer; font-weight:800; color:#0f3f7a}
+    details[open]{box-shadow:var(--shadow)}
+    details p{margin:.6rem 0 0}
+    /* 底部 CTA */
+    .cta{
+      background:linear-gradient(135deg, var(--primary) 0%, #0b7cff 50%, #3aa0ff 100%);
+      color:#fff; text-align:center; padding:48px 20px;
+    }
+    .cta h3{margin:0 0 6px; font-size: clamp(22px, 3.2vw, 28px)}
+    .cta p{margin:0 0 18px; opacity:.95}
+    /* 手機底部浮動 CTA */
+    .sticky-bar{
+      position:fixed; left:0; right:0; bottom:0; background:#0b61d1; color:#fff; padding:10px 14px;
+      display:none; z-index:50; box-shadow:0 -8px 18px rgba(0,0,0,.12);
+    }
+    .sticky-row{display:flex; gap:10px; align-items:center; justify-content:space-between}
+    .sticky-row .btn{padding:12px 14px; border-radius:10px}
+    @media (max-width:880px){ .sticky-bar{display:block} }
+    /* 區塊背景切換 */
+    .alt{background:var(--alt); border-top: 1px solid #e6eef9; border-bottom: 1px solid #e6eef9;}
+    /* 小字註記 */
+    .note{font-size:13px; color:#66738a}
+    footer{padding:36px 0; text-align: center;}
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container">
+      <span class="badge">今網寬頻用戶限定</span>
+      <h1>今網大雙網｜全台唯一 社區網路＋手機門號獨家優惠</h1>
+      <p class="lead">免出門，線上 10 分鐘完成，SIM 卡送到家。最高折抵 <b>8,900</b> 元，手機＋家用網路一次搞定，還能與親友門號疊加更省。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#apply" aria-label="立即申辦">立即申辦（馬上省 8,900）</a>
+        <a class="btn btn-ghost" href="#faq" aria-label="了解常見問題">先了解常見問題</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 區塊一：痛點 -->
+    <section class="alt">
+      <div class="container">
+        <h2 class="section-title">你是不是也遇到這些困擾？</h2>
+        <div class="grid grid-2">
+          <div class="card li-flex"><b>💸</b><div>家用網路要繳 <b>8,900 元</b>，價格壓力大。</div></div>
+          <div class="card li-flex"><b>🧾</b><div>手機與網路分開繳，帳單與客服聯繫很麻煩。</div></div>
+          <div class="card li-flex"><b>🙅‍♂️</b><div>不想被門市推銷，偏好線上快速完成。</div></div>
+          <div class="card li-flex"><b>📶</b><div>想換電信但擔心違約金、收訊與申辦流程。</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊二：解決方案 -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">一個選擇，解決所有問題</h2>
+        <div class="card">
+          <div class="feature"><i>🌟</i><div><b>今網寬頻用戶獨享</b>：全台唯一，結合「家用網路＋手機門號」的雙網獨家優惠。</div></div>
+          <div class="feature"><i>💰</i><div><b>最高折抵 8,900 元</b>：家用網路直接變便宜，還可與親友門號疊加更省。</div></div>
+          <div class="feature"><i>⚡</i><div><b>免出門，線上 10 分鐘完成</b>：SIM 卡直送到家，流程簡單、速度快。</div></div>
+          <div class="feature"><i>🛡</i><div><b>違約金補償</b>：轉換更安心。</div></div>
+          <div class="feature"><i>🧼</i><div><b>可選搭免費家電清洗</b>（冷氣／洗衣機），多一項實用好處。</div></div>
+        </div>
+        <p class="note" style="margin-top:10px">＊實際優惠依方案與資格條件為準；細節以專員說明為準。</p>
+      </div>
+    </section>
+
+    <!-- 區塊三：價格方案與吸引力（表格） -->
+    <section class="alt" id="plans">
+      <div class="container">
+        <h2 class="section-title">今網大雙網獨家優惠｜家用網路＋手機門號，一次雙省</h2>
+        <p class="lead" style="font-size: 16px; margin-bottom: 18px;">（與中華電信、遠傳等一線電信業者合作）</p>
+        <p style="margin-top: -10px; margin-bottom: 18px;">在家用今網，外出用各大電信，網速穩定，荷包更省。選擇最適合您的方案，享受前所未有的雙網優惠！</p>
+        <div class="table-wrap card" role="region" aria-label="今網大雙網方案對照表">
+          <table>
+            <thead>
+              <tr>
+                <th>資費方案</th>
+                <th>手機流量</th>
+                <th>原價（24 個月）</th>
+                <th>優惠價</th>
+                <th>直接現省</th>
+                <th>今網幫您省更多</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>399 攜碼</b></td>
+                <td><b>5 GB</b></td>
+                <td>8,900 元</td>
+                <td>6,900 元</td>
+                <td><span class="save"><strong>2,000</strong> 元</span></td>
+                <td>省 2,000 元 ＝ 少繳 <b>5 個月</b> 網路費</td>
+              </tr>
+              <tr>
+                <td><b>599 攜碼</b></td>
+                <td><b>24 GB</b></td>
+                <td>8,900 元</td>
+                <td>5,400 元</td>
+                <td><span class="save"><strong>3,500</strong> 元</span></td>
+                <td>省 3,500 元 ＝ 少繳 <b>9 個月</b> 網路費（快一年免繳）</td>
+              </tr>
+              <tr>
+                <td><b>799 攜碼</b></td>
+                <td><b>50 GB</b></td>
+                <td>8,900 元</td>
+                <td>2,900 元</td>
+                <td><span class="save"><strong>6,000</strong> 元</span></td>
+                <td>省 6,000 元 ＝ 少繳 <b>16 個月</b> 網路費（約一年半免繳）</td>
+              </tr>
+              <tr>
+                <td><b>999 攜碼</b></td>
+                <td><b>70 GB</b></td>
+                <td>8,900 元</td>
+                <td><b style="color:var(--primary); font-size: 18px;">0 元</b></td>
+                <td><span class="save"><strong>8,900</strong> 元</span></td>
+                <td><b>省 8,900 元 ＝ 24 個月網路費全免！</b></td>
+              </tr>
+              <tr>
+                <td><b>雙門號 599</b></td>
+                <td><b>24 GB x 2</b></td>
+                <td>8,900 元</td>
+                <td>1,900 元</td>
+                <td><span class="save"><strong>7,000</strong> 元</span></td>
+                <td>省 7,000 元 ＝ 少繳 <b>19 個月</b> 網路費（將近兩年免繳）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cta-row" style="margin-top:16px">
+          <a class="btn btn-primary" href="#apply">立即搶辦，雙網雙省</a>
+          <a class="btn btn-ghost" href="#faq">查看 FAQ</a>
+        </div>
+        <p class="note" style="margin-top:10px">＊等效「少繳月數」以 8,900 / 24 個月 ≈ 370 元/月為估算基礎；為說明用之概算數。</p>
+      </div>
+    </section>
+
+    <!-- 區塊四：用戶回饋 -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">真實用戶回饋</h2>
+        <div class="grid grid-3">
+          <div class="quote">「免出門就辦好，超快超方便！」</div>
+          <div class="quote">「原本以為很麻煩，結果只花 10 分鐘搞定！」</div>
+          <div class="quote">「真的省下好幾千元，還幫我爸媽洗了冷氣！」</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊五：FAQ -->
+    <section class="alt" id="faq">
+      <div class="container">
+        <h2 class="section-title">常見問題 FAQ</h2>
+        <div class="faq">
+          <details>
+            <summary>Q1. 什麼是「今網大雙網」？我要怎麼申辦？</summary>
+            <p class="muted">「今網大雙網」是今網寬頻與多家電信合作的獨家優惠，申辦家用光纖網路＋手機門號即可享：網內互打免費、指定資費再送網外通話（最高 220 分鐘）。</p>
+            <p class="muted"><b>三步驟快速申辦：</b><br>
+            1）確認門號狀態（合約到期／無合約且無欠費／不停話）<br>
+            2）準備雙證件並挑選方案（電信顧問線上協助身分驗證）<br>
+            3）免出門，SIM 卡送到家（專人宅配）</p>
+          </details>
+          <details>
+            <summary>Q2. 光纖網路與手機門號的速度如何？</summary>
+            <p class="muted"><b>家用網路：</b>採中華電信光纖線路，社區最高可達 <b>300M</b> 頻寬。</p>
+            <p class="muted"><b>手機門號：</b>依方案不同，提供下列到量後速度作為使用參考：<br>
+            ‧ 128 kbps：LINE 文字與語音溝通不中斷。<br>
+            ‧ 5–10 Mbps：追劇（720P）、社群、一般瀏覽流暢。<br>
+            ‧ 21 Mbps 吃到飽：1080P 影音、音樂串流、遊戲更順暢。</p>
+          </details>
+          <details>
+            <summary>Q3. 如何查詢門號合約到期與解約金？</summary>
+            <p class="muted">可撥打原電信客服專線或登入原電信 APP 查詢合約資訊；解約金需以客服電話確認。</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊六：底部 CTA -->
+    <section class="cta" id="apply" aria-label="立即申辦">
+      <div class="container" style="text-align:center">
+        <h3>立即申辦，最高可省 8,900 ＝ 等於少繳 <b>24 個月網路費</b>！</h3>
+        <p>免出門，線上 10 分鐘完成，SIM 卡送到家。</p>
+        <div class="cta-row" style="justify-content:center">
+          <a class="btn btn-primary" href="#"><b>立即線上申辦</b></a>
+          <a class="btn btn-ghost" href="#plans">先看方案對照表</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <div class="container note">© 今網大雙網 — 促銷資訊以實際公告為準</div>
+  </footer>
+
+  <!-- 手機底部浮動 CTA -->
+  <div class="sticky-bar" role="region" aria-label="行動快速申辦">
+    <div class="container sticky-row">
+      <div style="font-weight:700">省 8,900｜線上 10 分鐘完成</div>
+      <div>
+        <a class="btn btn-ghost" href="#plans">看方案</a>
+        <a class="btn btn-primary" href="#apply">立即申辦</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 可選：自動關閉其他 FAQ，讓 UI 更俐落
+    const faqs = document.querySelectorAll('details');
+    faqs.forEach(d => {
+      d.addEventListener('toggle', () => {
+        if (d.open) {
+          faqs.forEach(o => { if (o !== d) o.removeAttribute('open'); });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
