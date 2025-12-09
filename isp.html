@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>今網工程師垂直排程與約工推薦系統</title>
+    <title>工程師排程與約工推薦系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/isBetween.min.js"></script>
@@ -82,6 +82,33 @@
         .task-cell:hover:not(.off-hour, .lunch-break) {
             opacity: 0.9;
         }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -101,6 +128,7 @@
     let app, db, auth, userId = null;
     let currentSchedules = {}; // Store fetched schedules
     let unsubscribe = null; // To manage the real-time listener
+    let hasListenerStarted = false; // 用於防止重複啟動監聽器和錯誤處理。
 
     // Engineer names and IDs based on user's request
     const ENGINEER_NAMES = [
@@ -111,7 +139,7 @@
         { id: 'E13', name: '王十三' }
     ];
 
-    // Special Task Column Names (User specified order for display: 假派覆機 -> 機房端維修 -> 緊急維修 -> 裝機待協調)
+    // Special Task Column Names
     const SPECIAL_TASK_COLUMNS = ['假派覆機', '機房端維修', '緊急維修', '裝機待協調'];
 
 
@@ -119,8 +147,10 @@
     const state = {
         selectedArea: '台中區',
         selectedDate: dayjs().format('YYYY-MM-DD'),
-        highlightedRecommendation: null, 
+        highlightedRecommendation: null, // { engineerId, startSlot, durationSlots, area }
         isAuthReady: false,
+        lastConfirmedRecommendation: null, // Store data for SMS modal
+        allRecommendations: [] // Store all recommendations
     };
 
     // --- Utility Functions ---
@@ -142,7 +172,6 @@
     // Helper to format the current date as YYYY/MM/DD (週X) for display
     const getDefaultDateDisplay = (dateObj) => {
         const d = dayjs(dateObj);
-        // dayjs().day() returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday
         const weekday = ['日', '一', '二', '三', '四', '五', '六'][d.day()];
         return `${d.format('YYYY/MM/DD')} (週${weekday})`;
     };
@@ -160,7 +189,7 @@
 
     // Shift Logic: Returns true if the slot (0-25) is an off-hour or lunch break
     const isSlotUnavailable = (slotIndex, shift) => {
-        // Time slots: 9:00=0, 13:00=8, 17:00=16, 21:30=25
+        // Time slots: 9:00=0, 21:30=25
         const startTime = timeToSlot('09:00');
         const endTime = timeToSlot('21:30');
 
@@ -185,56 +214,84 @@
         return `artifacts/${appId}/public/data/engineer_schedules`;
     };
 
+    // NEW: 顯示載入狀態
+    const showLoadingState = () => {
+        const gridContainer = document.getElementById('vertical-capacity-grid-body');
+        // 使用 Tailwind 樣式和 SVG  spinner 顯示載入中
+        gridContainer.innerHTML = `
+            <div class="text-center p-8 text-gray-500 col-span-full flex items-center justify-center space-x-2" style="grid-column: 1 / -1;">
+                <svg class="animate-spin h-5 w-5 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>載入排程數據中...</span>
+            </div>
+        `;
+    };
+
     const setupRealtimeListener = (area, date) => {
-        if (!db || !state.isAuthReady) return;
+        if (!db || !state.isAuthReady) {
+            console.warn("Firestore: DB not ready or Auth not complete. Listener skipped.");
+            // Render the grid with potentially stale data or loading message if not authenticated
+            renderEnergyTable(currentSchedules); 
+            return;
+        }
+
+        // 1. 立即顯示載入狀態，覆蓋舊的或靜態的內容
+        showLoadingState(); 
 
         // Clear previous listener if exists
         if (unsubscribe) {
             unsubscribe();
+            console.log("Firestore: Previous listener unsubscribed.");
         }
 
         const docId = `${area}_${date}`;
         const scheduleRef = doc(db, getSchedulePath(), docId);
 
-        console.log(`Listening to schedule: ${docId}`);
+        console.log(`Firestore: Listening to schedule document: ${docId}`);
 
         unsubscribe = onSnapshot(scheduleRef, (docSnap) => {
             if (docSnap.exists()) {
                 currentSchedules = docSnap.data();
-                console.log("Current data:", currentSchedules);
+                console.log("Firestore: Data received and updated.");
             } else {
-                console.log("No schedule found, initializing mock data.");
+                console.log("Firestore: No schedule found, initializing mock data.");
                 currentSchedules = generateMockSchedule(area, date);
                 // Attempt to save mock data (only if authenticated)
                 if (userId) {
                     setDoc(scheduleRef, currentSchedules, { merge: true })
-                        .then(() => console.log('Mock schedule initialized to Firestore.'))
-                        .catch(err => console.error('Error setting mock data:', err));
+                        .then(() => console.log('Firestore: Mock schedule initialized and saved.'))
+                        .catch(err => console.error('Firestore: Error setting mock data:', err));
                 }
             }
             renderEnergyTable(currentSchedules);
         }, (error) => {
-            console.error("Firestore listener error:", error);
+            console.error("Firestore: Real-time listener error:", error);
+            document.getElementById('energy-table-error').textContent = `錯誤: Firestore 數據讀取失敗 (${error.message})。`;
+            document.getElementById('energy-table-error').classList.remove('hidden');
             renderEnergyTable({ error: true });
         });
     };
 
-    // Mock Schedule Generator
+    // Mock Schedule Generator (kept for consistency)
     const generateMockSchedule = (area, date) => {
+        // This function is crucial for simulating schedule fetching for future dates in the recommendation logic
         const engineers = {};
         ENGINEER_NAMES.forEach((eng, i) => {
             const id = eng.id;
-            const shift = i % 2 === 0 ? 'afternoon' : 'morning'; // Alternating shifts
-            const mockTasks = [];
+            // Shift is determined by index + day of the week for variability
+            const dayOfWeek = dayjs(date).day(); // 0 (Sun) to 6 (Sat)
+            const shiftPattern = (i + dayOfWeek) % 2; 
+            const shift = shiftPattern === 0 ? 'morning' : 'afternoon';
 
-            if (i === 0) { // 王一 (Afternoon)
-                mockTasks.push({ taskType: '用戶端維修', startSlot: 10, durationSlots: 4, location: '北屯', jobId: 'J001' }); // 14:00-16:00
-            } else if (i === 4) { // 王五 (Afternoon)
-                mockTasks.push({ taskType: '用戶端工程', startSlot: 16, durationSlots: 2, location: '清水', jobId: 'J002' }); // 17:00-18:00
-            } else if (i === 6) { // 王七 (Afternoon)
-                mockTasks.push({ taskType: '裝機加水平', startSlot: 20, durationSlots: 4, location: '南屯', jobId: 'J003' }); // 19:00-21:00
-            } else if (i === 9) { // 王十 (Afternoon)
-                mockTasks.push({ taskType: '社區上線測通', startSlot: 8, durationSlots: 8, location: '大里', jobId: 'J004' }); // 13:00-17:00
+            const mockTasks = [];
+            // Simple logic to add some tasks based on the day and engineer
+            if (dayjs(date).date() % (i + 1) === 0) {
+                mockTasks.push({ taskType: '用戶端維修', startSlot: 10, durationSlots: 4, location: '北屯', jobId: `J${i}A` }); 
+            }
+            if (dayjs(date).date() % (i + 2) === 0) {
+                 mockTasks.push({ taskType: '裝機', startSlot: 16, durationSlots: 3, location: '西屯', jobId: `J${i}B` }); 
             }
 
             engineers[id] = { name: eng.name, shift, schedule: mockTasks };
@@ -245,30 +302,54 @@
             date,
             engineers,
             specialTasks: {
-                '裝機待協調': [{ taskType: '裝機', startSlot: 5, durationSlots: 3, location: '豐原', jobId: 'P001' }], // 11:30 - 13:00
-                '緊急維修': [{ taskType: '機房端維修', startSlot: 15, durationSlots: 1, location: '機房A', jobId: 'P002' }], // 16:30 - 17:00
-                '機房端維修': [{ taskType: '機房端維修', startSlot: 2, durationSlots: 1, location: '機房B', jobId: 'P003' }], // 10:00 - 10:30
-                '假派覆機': [{ taskType: '用戶端維修', startSlot: 18, durationSlots: 2, location: '西屯', jobId: 'P004' }], // 18:00 - 19:00
+                '裝機待協調': [{ taskType: '裝機', startSlot: 5, durationSlots: 3, location: '豐原', jobId: 'P001' }],
+                '緊急維修': [{ taskType: '機房端維修', startSlot: 15, durationSlots: 1, location: '機房A', jobId: 'P002' }],
+                '機房端維修': [{ taskType: '機房端維修', startSlot: 2, durationSlots: 1, location: '機房B', jobId: 'P003' }],
+                '假派覆機': [{ taskType: '用戶端維修', startSlot: 18, durationSlots: 2, location: '西屯', jobId: 'P004' }],
             }
         };
     };
+
+    // --- Event Handlers (FIXED: Added showLoadingState) ---
+
+    const handleAreaChange = (event) => {
+        state.selectedArea = event.target.value;
+        document.getElementById('current-area').textContent = state.selectedArea;
+        // Reset highlight when area changes, as the schedule is new
+        state.highlightedRecommendation = null;
+        showLoadingState(); // <--- NEW: 顯示載入狀態
+        setupRealtimeListener(state.selectedArea, state.selectedDate);
+    };
+
+    const handleDateChange = (event) => {
+        state.selectedDate = event.target.value;
+        document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(state.selectedDate);
+        // Reset highlight when date changes, as the schedule is new
+        state.highlightedRecommendation = null;
+        showLoadingState(); // <--- NEW: 顯示載入狀態
+        setupRealtimeListener(state.selectedArea, state.selectedDate);
+    };
+
 
     // --- UI Rendering ---
 
     const renderEnergyTable = (schedules) => {
         const gridContainer = document.getElementById('vertical-capacity-grid-body');
         const errorContainer = document.getElementById('energy-table-error');
-        gridContainer.innerHTML = '';
+        // 渲染之前先清空內容 (這會清除 loading spinner)
+        gridContainer.innerHTML = ''; 
 
         if (schedules.error) {
             errorContainer.textContent = '載入排程數據錯誤，請檢查連線或登入狀態。';
             errorContainer.classList.remove('hidden');
+            // 由於已經清空 gridContainer.innerHTML，這裡可以不寫內容或顯示一個靜態錯誤提示
+            gridContainer.innerHTML = `<div class="text-center p-8 text-red-500 col-span-full" style="grid-column: 1 / -1;">數據載入失敗，請查看上方錯誤訊息。</div>`;
             return;
         } else {
             errorContainer.classList.add('hidden');
         }
 
-        // 1. Render Headers (Time Label + Special Tasks + Engineers)
+        // 1. Render Headers
         const headers = ['時間'];
         SPECIAL_TASK_COLUMNS.forEach(name => headers.push(name));
         ENGINEER_NAMES.forEach(eng => headers.push(eng.name));
@@ -280,14 +361,12 @@
             
             let nameContent = title;
             if (index > 4) { // Engineer headers (Index 5 onwards)
-                // FIX applied here: Engineer headers start at index 5, so the offset for ENGINEER_NAMES (0-indexed) must be 5.
                 const engineerIndex = index - 5;
-                if (engineerIndex < ENGINEER_NAMES.length) {
+                if (engineerIndex < ENGINEER_NAMES.length && schedules.engineers) {
                     const engineer = schedules.engineers[ENGINEER_NAMES[engineerIndex].id]; 
                     const shift = engineer ? engineer.shift === 'morning' ? '早' : '午' : '?';
                     nameContent = `${title} (${shift})`;
                 } else {
-                    // Fallback for safety, though headers array should match ENGINEER_NAMES size
                     nameContent = `${title} (?)`;
                 }
             }
@@ -310,20 +389,23 @@
 
             // Last 13 Cells: Engineers
             ENGINEER_NAMES.forEach(eng => {
-                bodyRowsHtml.push(renderEngineerCell(i, eng.id, schedules.engineers[eng.id]));
+                bodyRowsHtml.push(renderEngineerCell(i, eng.id, schedules.engineers?.[eng.id]));
             });
         }
         
         // Combine header and body
         gridContainer.innerHTML = headerRowHtml + bodyRowsHtml.join('');
 
-        // Re-attach event listeners for recommendation highligh
-        document.querySelectorAll('.task-cell').forEach(slot => {
-            slot.addEventListener('click', handleSlotClick);
-        });
+        // Update current date display
+        document.getElementById('current-date-display').textContent = getDefaultDateDisplay(state.selectedDate);
+
+        // Re-attach event listeners for recommendation highligh (Note: handleSlotClick is not defined, keeping it for original structure)
+        // document.querySelectorAll('.task-cell').forEach(slot => {
+        //     slot.addEventListener('click', handleSlotClick); 
+        // });
     };
     
-    // Renders one time slot cell for an Engineer
+    // Renders one time slot cell for an Engineer (kept for consistency)
     const renderEngineerCell = (slotIndex, id, engineer) => {
         if (!engineer) return `<div class="grid-cell bg-gray-100" title="數據遺失">?</div>`;
 
@@ -332,15 +414,18 @@
         let content = '';
         let title = '';
 
+        // Check if the current cell should be highlighted
         const isRec = state.highlightedRecommendation && state.highlightedRecommendation.engineerId === id &&
                       slotIndex >= state.highlightedRecommendation.startSlot &&
-                      slotIndex < state.highlightedRecommendation.startSlot + state.highlightedRecommendation.durationSlots;
+                      slotIndex < state.highlightedRecommendation.startSlot + state.highlightedRecommendation.durationSlots &&
+                      dayjs(state.highlightedRecommendation.date).format('YYYY-MM-DD') === state.selectedDate;
+
 
         if (isRec) {
             // Highlighting the recommendation
             classes += ' bg-secondary-yellow z-10 shadow-lg border-2 border-yellow-700';
-            content = `<span class="truncate text-gray-900 font-bold">約工 (${state.highlightedRecommendation.area})</span>`;
-            title = `推薦約工：${state.highlightedRecommendation.area} (${TIME_LABELS[state.highlightedRecommendation.startSlot]} - ${TIME_LABELS[state.highlightedRecommendation.startSlot + state.highlightedRecommendation.durationSlots]})`;
+            content = `<span class="truncate text-gray-900 font-bold">約工 (${state.highlightedRecommendation.district})</span>`;
+            title = `推薦約工：${state.highlightedRecommendation.district} (${TIME_LABELS[state.highlightedRecommendation.startSlot]} - ${TIME_LABELS[state.highlightedRecommendation.startSlot + state.highlightedRecommendation.durationSlots]})`;
         } else {
             const isOff = isSlotUnavailable(slotIndex, shift);
             const occupiedTask = schedule.find(task => 
@@ -355,11 +440,9 @@
                 const typeDef = TASK_TYPES[occupiedTask.taskType];
                 classes += ` ${typeDef.color} text-white`;
                 
-                // Only label the first slot of a task
                 if (slotIndex === occupiedTask.startSlot) {
                     content = `<span class="text-[10px] font-semibold truncate">${typeDef.label} - ${occupiedTask.location}</span>`;
                 } else if (slotIndex > occupiedTask.startSlot) {
-                    // Subsequent occupied slots are marked but unlabeled
                     classes += ' opacity-80';
                 }
 
@@ -374,7 +457,7 @@
         return `<div class="${classes}" title="${title}" data-engineer-id="${id}" data-slot-index="${slotIndex}">${content}</div>`;
     };
 
-    // Renders one time slot cell for a Special Task Column
+    // Renders one time slot cell for a Special Task Column (kept for consistency)
     const renderSpecialTaskCell = (slotIndex, name, tasks) => {
         let classes = 'grid-cell task-cell bg-gray-100';
         let content = '';
@@ -389,7 +472,6 @@
             
             classes += ` ${taskColorClass} text-white`;
 
-            // Only label the first slot of a task
             if (slotIndex === occupiedTask.startSlot) {
                 const typeDef = TASK_TYPES[occupiedTask.taskType];
                 content = `<span class="text-[10px] font-bold truncate">${typeDef.label} (${occupiedTask.location || ''})</span>`;
@@ -406,62 +488,17 @@
         return `<div class="${classes}" title="${title}" data-task-type="${name}" data-slot-index="${slotIndex}">${content}</div>`;
     };
 
-    // --- Event Handlers & Core Logic ---
+    // --- Recommendation Logic (kept for consistency) ---
 
-    const handleAreaChange = (event) => {
-        state.selectedArea = event.target.value;
-        document.getElementById('current-area').textContent = state.selectedArea;
-        setupRealtimeListener(state.selectedArea, state.selectedDate);
-    };
-
-    const handleDateChange = (event) => {
-        state.selectedDate = event.target.value;
-        setupRealtimeListener(state.selectedArea, state.selectedDate);
-    };
-
-    const handleSlotClick = (event) => {
-        const engineerId = event.target.closest('.task-cell')?.dataset.engineerId;
-        const taskType = event.target.closest('.task-cell')?.dataset.taskType;
-        const slotIndex = event.target.closest('.task-cell')?.dataset.slotIndex;
-
-        if (engineerId && slotIndex) {
-            console.log(`Clicked Engineer ${engineerId} at slot ${TIME_LABELS[slotIndex]}`);
-            // This is where you might open a modal to create a new task
-        } else if (taskType && slotIndex) {
-            console.log(`Clicked Special Task ${taskType} at slot ${TIME_LABELS[slotIndex]}`);
-        }
-    };
-
-
-    // RECOMMENDATION LOGIC (Mock implementation)
-    const runRecommendation = () => {
-        // 移除 'rec-location' 輸入，改用當前選擇的區域作為推薦上下文
-        const locationInput = state.selectedArea; 
-        
-        const durationH = parseFloat(document.getElementById('rec-duration').value);
-        const durationSlots = durationH * 2; // Convert hours to half-hour slots
-
-        // 檢查時長是否已輸入
-        if (!durationSlots || durationSlots === 0) {
-            alert('請輸入期望約工時長！');
-            return;
-        }
-
-        // 1. 模擬順工判斷 (Priority 1: Find best area - Mocked)
-        const mockArea = state.selectedArea; // 預設為當前區域
-        const mockDistrict = '北屯'; // 由於移除了輸入欄位，此處使用模擬地區
-        
-        // 2. 模擬最近日期判斷 (Priority 2: Find nearest date and earliest slot)
-        let foundDate = null;
-        let foundEngineer = null;
-        let foundEngineerName = null;
-        let foundStartSlot = -1;
-
+    // New helper to find N recommendations
+    const findRecommendations = (area, durationSlots, numToFind = 6) => {
+        const results = [];
         const maxDaysToSearch = 7;
-        for (let d = 0; d < maxDaysToSearch; d++) {
-            // 從當前選擇的日期開始向後搜尋
+        const targetDistrict = '北屯'; // Mocked district for context
+
+        for (let d = 0; d < maxDaysToSearch && results.length < numToFind * 2; d++) { // Search up to 7 days, grab more than needed
             const searchDate = dayjs(state.selectedDate).add(d, 'day').format('YYYY-MM-DD');
-            const mockSchedule = generateMockSchedule(mockArea, searchDate); // Simulating fetching future schedules
+            const mockSchedule = generateMockSchedule(area, searchDate); // Mocking future schedule fetch
             
             const availableEngineers = ENGINEER_NAMES.map(eng => ({ 
                 ...eng,
@@ -472,98 +509,174 @@
                 let consecutiveFreeSlots = 0;
                 let currentStartSlot = -1;
 
-                for (let i = 0; i < 26; i++) {
-                    const isOff = isSlotUnavailable(i, engineer.shift);
-                    const isOccupied = engineer.schedule.some(task => i >= task.startSlot && i < task.startSlot + task.durationSlots);
+                for (let i = 0; i <= 26; i++) { // Include slot 26 for duration check at the end
+                    // Check conditions for current slot i
+                    const isOff = i < 26 && isSlotUnavailable(i, engineer.shift);
+                    const isOccupied = i < 26 && engineer.schedule.some(task => i >= task.startSlot && i < task.startSlot + task.durationSlots);
 
-                    if (!isOff && !isOccupied) {
+                    if (i < 26 && !isOff && !isOccupied) {
                         if (currentStartSlot === -1) {
                             currentStartSlot = i;
                         }
                         consecutiveFreeSlots++;
                         
                         if (consecutiveFreeSlots >= durationSlots) {
-                            foundDate = searchDate;
-                            foundEngineer = engineer.id;
-                            foundEngineerName = engineer.name;
-                            foundStartSlot = currentStartSlot;
-                            break; 
+                            // Found a fit! Record the start time and continue the search
+                            results.push({
+                                date: searchDate,
+                                startSlot: currentStartSlot,
+                                durationSlots: durationSlots,
+                                engineerId: engineer.id,
+                                engineerName: engineer.name,
+                                area: area,
+                                district: targetDistrict // Mocked
+                            });
+                            // Advance the search window to find the next possible start slot right after the current fit
+                            currentStartSlot = currentStartSlot + durationSlots; 
+                            consecutiveFreeSlots = 0; 
                         }
                     } else {
+                        // Slot is unavailable/occupied, reset the tracking variables
                         consecutiveFreeSlots = 0;
                         currentStartSlot = -1;
                     }
+
+                    if (results.length >= numToFind) {
+                        // Early exit if enough recommendations are found
+                        return results.slice(0, numToFind);
+                    }
                 }
-                
-                if (foundEngineer) break;
             }
-            if (foundEngineer) break;
         }
 
+        return results.slice(0, numToFind);
+    }
 
-        if (foundEngineer) {
-            const startDate = dayjs(foundDate);
-            const startTimeStr = TIME_LABELS[foundStartSlot];
-            const endTimeStr = TIME_LABELS[foundStartSlot + durationSlots];
 
-            // Update UI elements for recommendation output
-            document.getElementById('rec-area-output').textContent = `${mockArea} (${mockDistrict})`;
+    const runRecommendation = () => {
+        const durationH = parseFloat(document.getElementById('rec-duration').value);
+        const durationSlots = durationH * 2; 
+        const area = state.selectedArea;
+
+        if (!durationSlots || durationSlots === 0) {
+            alertBox('請輸入期望約工時長！', 'bg-red-100 border-red-500 text-red-700');
+            return;
+        }
+
+        const recommendations = findRecommendations(area, durationSlots, 6); // Find up to 6
+
+        const primaryRec = recommendations[0];
+        const secondaryRecs = recommendations.slice(1);
+
+        if (primaryRec) {
+            const startDate = dayjs(primaryRec.date);
+            const startTimeStr = TIME_LABELS[primaryRec.startSlot];
+            const endTimeStr = TIME_LABELS[primaryRec.startSlot + primaryRec.durationSlots];
+
+            // 1. Update Primary UI
+            document.getElementById('rec-area-output').textContent = `${primaryRec.area} (${primaryRec.district})`;
             document.getElementById('rec-date-output').textContent = `${startDate.format('MM/DD (ddd)')}`;
             document.getElementById('rec-time-output').textContent = `${startTimeStr} - ${endTimeStr}`;
-            document.getElementById('rec-engineer-output').textContent = foundEngineerName;
+            document.getElementById('rec-engineer-output').textContent = primaryRec.engineerName;
 
-            // Store highlight data for the confirmation click
-            document.getElementById('confirm-rec-btn').dataset.engineerId = foundEngineer;
-            document.getElementById('confirm-rec-btn').dataset.startSlot = foundStartSlot;
-            document.getElementById('confirm-rec-btn').dataset.durationSlots = durationSlots;
-            document.getElementById('confirm-rec-btn').dataset.targetDate = foundDate;
-            document.getElementById('confirm-rec-btn').dataset.targetArea = mockArea;
-            document.getElementById('confirm-rec-btn').dataset.targetDistrict = mockDistrict;
+            // Store data for the primary confirmation click and final booking
+            document.getElementById('highlight-rec-btn-0').dataset.recIndex = 0;
+            document.getElementById('final-confirm-btn').dataset.recIndex = 0;
+
+            // 2. Update Secondary UI
+            const secondaryContainer = document.getElementById('secondary-recommendations-container');
+            let secondaryHtml = '';
+            
+            if (secondaryRecs.length > 0) {
+                secondaryHtml = secondaryRecs.map((rec, index) => {
+                    const recIndex = index + 1;
+                    const recDate = dayjs(rec.date);
+                    const recTime = `${TIME_LABELS[rec.startSlot]} - ${TIME_LABELS[rec.startSlot + rec.durationSlots]}`;
+
+                    return `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                            <div class="text-sm text-gray-700">
+                                <strong>${recDate.format('MM/DD (週ddd)')}</strong> ${recTime} (${rec.engineerName})
+                            </div>
+                            <button 
+                                class="highlight-rec-btn px-2 py-1 bg-yellow-300 text-yellow-900 rounded-md text-xs font-semibold hover:bg-yellow-400 transition"
+                                data-rec-index="${recIndex}"
+                                >
+                                高亮顯示參考
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                secondaryContainer.innerHTML = secondaryHtml;
+                document.getElementById('secondary-section').classList.remove('hidden');
+                
+                // Re-attach listeners for the new buttons
+                document.querySelectorAll('.highlight-rec-btn').forEach(btn => {
+                    btn.removeEventListener('click', confirmRecommendation); // Ensure no duplicate listeners
+                    btn.addEventListener('click', confirmRecommendation);
+                });
+            } else {
+                 secondaryContainer.innerHTML = `<div class="text-sm text-gray-500">未找到其他合適的順位建議。</div>`;
+                 document.getElementById('secondary-section').classList.remove('hidden'); // Keep section visible but show no results
+            }
+
+
+            // 3. Store ALL recommendations in state for easy lookup later
+            state.allRecommendations = recommendations; 
 
             document.getElementById('rec-output-container').classList.remove('hidden');
-
         } else {
             document.getElementById('rec-output-container').classList.add('hidden');
-            alert('未找到合適的約工時段，請調整條件。');
+            document.getElementById('secondary-section').classList.add('hidden');
+            alertBox('未找到合適的約工時段，請調整條件。', 'bg-red-100 border-red-500 text-red-700'); 
         }
     };
 
+
     const confirmRecommendation = (event) => {
         const btn = event.currentTarget;
-        const engineerId = btn.dataset.engineerId;
-        const startSlot = parseInt(btn.dataset.startSlot);
-        const durationSlots = parseInt(btn.dataset.durationSlots);
-        const targetDate = btn.dataset.targetDate;
-        const targetArea = btn.dataset.targetArea;
-        const targetDistrict = btn.dataset.targetDistrict;
-        const engineerName = ENGINEER_NAMES.find(e => e.id === engineerId)?.name || engineerId;
+        const recIndex = parseInt(btn.dataset.recIndex);
+        const rec = state.allRecommendations[recIndex];
 
-        if (!engineerId) return;
+        if (!rec) return;
 
         // 1. Update UI state for highligh
-        state.highlightedRecommendation = {
-            engineerId,
-            startSlot,
-            durationSlots,
-            area: targetDistrict
-        };
+        state.highlightedRecommendation = rec;
 
         // 2. Change the area/date selectors and trigger re-render
+        const targetDate = rec.date;
+        const targetArea = rec.area;
+
+        // 確保選擇器與推薦結果一致
+        let needRelisten = false;
         if (state.selectedArea !== targetArea) {
             document.getElementById('area-select').value = targetArea;
             state.selectedArea = targetArea;
+            needRelisten = true;
         }
         if (state.selectedDate !== targetDate) {
             document.getElementById('date-select').value = targetDate;
             state.selectedDate = targetDate;
+            document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(state.selectedDate);
+            needRelisten = true;
         }
         document.getElementById('current-area').textContent = state.selectedArea;
+        
+        // Update the final confirmation button to reflect the currently highlighted choice
+        document.getElementById('final-confirm-btn').dataset.recIndex = recIndex;
 
-        // Re-listen/re-render to show the highlight on the target date/area
-        setupRealtimeListener(state.selectedArea, state.selectedDate);
+        // 3. 顯示載入狀態並重新監聽/渲染，以顯示高亮
+        if (needRelisten) {
+             showLoadingState(); // <--- NEW: 在開始新的異步載入前顯示載入中
+             setupRealtimeListener(state.selectedArea, state.selectedDate);
+        } else {
+             // 如果日期和區域都沒變，只需要重新渲染當前數據來顯示高亮
+             renderEnergyTable(currentSchedules); 
+        }
+
 
         // Scroll to the row where the recommendation starts (optional but nice UX)
-        const targetElement = document.querySelector(`.grid-cell[data-engineer-id="${engineerId}"][data-slot-index="${startSlot}"]`);
+        const targetElement = document.querySelector(`.grid-cell[data-engineer-id="${rec.engineerId}"][data-slot-index="${rec.startSlot}"]`);
         if (targetElement) {
              const scrollContainer = document.getElementById('energy-table-scroll-area');
              const targetY = targetElement.offsetTop - (scrollContainer.offsetHeight / 2) + (targetElement.offsetHeight / 2);
@@ -573,51 +686,152 @@
 
         // Display confirmation message near the table or recommendation output
         const messageBox = document.getElementById('highlight-message');
-        messageBox.textContent = `已跳轉至 ${targetArea} ${dayjs(targetDate).format('MM/DD')}，請確認工程師 ${engineerName} 的亮黃色推薦時段。`;
+        messageBox.textContent = `已跳轉至 ${targetArea} ${dayjs(targetDate).format('MM/DD')}，請確認工程師 ${rec.engineerName} 的亮黃色推薦時段。`;
         messageBox.classList.remove('hidden');
         setTimeout(() => messageBox.classList.add('hidden'), 5000);
     };
 
+    // --- New Feature: SMS Interface (kept for consistency) ---
 
-    // --- Initialization ---
+    const showSmsModal = (event) => {
+        const btn = event.currentTarget;
+        const recIndex = parseInt(btn.dataset.recIndex);
+        const rec = state.allRecommendations[recIndex];
 
-    const initFirebase = async () => {
-        if (Object.keys(firebaseConfig).length === 0) {
-            console.error("Firebase config is missing. Cannot proceed with data persistence.");
+        if (!rec) {
+            alertBox('請先執行推薦並點擊高亮顯示參考！', 'bg-red-100 border-red-500 text-red-700');
             return;
         }
+
+        state.lastConfirmedRecommendation = rec;
+
+        const engineer = rec.engineerName;
+        const customerName = '李先生'; // Mock Customer Name
+        const address = `${rec.area}${rec.district}區文心路一段99號`; // Mock Address
+        const date = dayjs(rec.date).format('MM/DD (週ddd)');
+        const time = `${TIME_LABELS[rec.startSlot]} - ${TIME_LABELS[rec.startSlot + rec.durationSlots]}`;
+        const serviceType = '裝機加水平'; // Mock Service Type
+
+        // Generate mock SMS content
+        const defaultSms = 
+            `【今網】親愛的${customerName}，您預約的${serviceType}已確認，` + 
+            `派工工程師：${engineer}，預約日期：${date}，時間區間：${time}，` + 
+            `地址：${address}。` +
+            `如有變動請電洽。`;
+
+        // Populate modal fields
+        document.getElementById('sms-recipient').value = customerName;
+        document.getElementById('sms-engineer').textContent = engineer;
+        document.getElementById('sms-details').textContent = `${date} ${time} | ${serviceType}`;
+        document.getElementById('sms-content-textarea').value = defaultSms;
+
+        // Show modal
+        document.getElementById('appointment-sms-modal').style.display = 'flex';
+    };
+
+    const closeSmsModal = () => {
+        document.getElementById('appointment-sms-modal').style.display = 'none';
+    };
+    
+    const sendSms = () => {
+        const content = document.getElementById('sms-content-textarea').value;
+        // Mock sending action
+        console.log("模擬發送簡訊內容:", content);
+        // Use a non-alert message box for feedback
+        alertBox('簡訊已模擬送出！', 'bg-green-100 border-green-500 text-green-700');
+        closeSmsModal();
+    };
+
+    // Simple Alert Box replacement (non-alert() version)
+    const alertBox = (message, classes) => {
+        const box = document.getElementById('global-message-box');
+        box.textContent = message;
+        box.className = `absolute top-4 right-4 p-3 rounded-md shadow-md text-sm font-medium z-40 border ${classes}`;
+        box.classList.remove('hidden');
+        setTimeout(() => box.classList.add('hidden'), 5000);
+    };
+
+
+    // --- Initialization (FIXED Firebase Authentication Logic & Loading State) ---
+
+    const initFirebase = async () => {
+        const errorContainer = document.getElementById('energy-table-error');
+        errorContainer.classList.add('hidden'); 
+
+        // 1. 初始顯示載入狀態
+        showLoadingState(); 
+
+        // Set initial display date
+        document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(state.selectedDate);
+        document.getElementById('current-area').textContent = state.selectedArea;
+
+
+        if (Object.keys(firebaseConfig).length === 0) {
+            console.error("FATAL: Firebase config is missing. Cannot proceed with data persistence.");
+            errorContainer.textContent = "錯誤: 找不到 Firebase 配置資訊 (__firebase_config 為空)。";
+            errorContainer.classList.remove('hidden');
+            renderEnergyTable(generateMockSchedule(state.selectedArea, state.selectedDate));
+            return;
+        }
+        
         try {
             setLogLevel('Debug');
+            console.log("1. Starting Firebase initialization...");
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-
-            // Authentication
-            if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-                await signInAnonymously(auth);
-            }
+            console.log("2. Firebase services initialized (App, DB, Auth).");
 
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     userId = user.uid;
                     state.isAuthReady = true;
-                    console.log("Firebase Auth Ready. User ID:", userId);
+                    console.log("4. Authentication SUCCESS (onAuthStateChanged fired). User ID:", userId);
 
-                    // Start the listener with default state
-                    setupRealtimeListener(state.selectedArea, state.selectedDate);
+                    // 僅在首次成功登入時才啟動監聽器
+                    if (!hasListenerStarted) {
+                        console.log("5. Starting real-time schedule listener...");
+                        setupRealtimeListener(state.selectedArea, state.selectedDate);
+                        hasListenerStarted = true; // 設定旗標，防止未來重複執行
+                    }
 
                 } else {
                     state.isAuthReady = false;
-                    console.log("No user signed in.");
+                    // 僅在尚未成功啟動監聽器時，執行錯誤處理/回退邏輯
+                    if (!hasListenerStarted) {
+                        console.error("4. Authentication FAILED (onAuthStateChanged fired). No user signed in.");
+                        document.getElementById('energy-table-error').textContent = `錯誤: 無法登入 Firebase 服務。數據將無法即時載入，顯示為模擬數據。`;
+                        document.getElementById('energy-table-error').classList.remove('hidden');
+                        // Fallback to displaying mock data if auth fails, but warn user
+                        renderEnergyTable(generateMockSchedule(state.selectedArea, state.selectedDate));
+                    }
                 }
             });
+            
+            let signInAttempted = false;
+
+            if (initialAuthToken) {
+                try {
+                    console.log("3a. Attempting sign-in with custom token. Token status: PRESENT.");
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("3a.1. signInWithCustomToken promise resolved. Awaiting onAuthStateChanged...");
+                    signInAttempted = true;
+                } catch (customTokenError) {
+                    console.warn(`3b. Custom Token Sign-in FAILED (${customTokenError.code || customTokenError.message}). Falling back to anonymous sign-in.`);
+                }
+            }
+
+            if (!signInAttempted) {
+                console.log("3c. Attempting anonymous sign-in.");
+                await signInAnonymously(auth);
+                console.log("3c.1. signInAnonymously promise resolved. Awaiting onAuthStateChanged...");
+            }
 
         } catch (error) {
-            console.error("Firebase Initialization Error:", error);
-            document.getElementById('energy-table-error').textContent = `Firebase 初始化失敗: ${error.message}`;
+            console.error("FATAL Firebase Initialization or Final Sign-in Attempt Error:", error.code, error.message);
+            document.getElementById('energy-table-error').textContent = `致命錯誤: Firebase 服務初始化或最終登入嘗試失敗 (${error.code || error.message})。將顯示模擬數據。`;
             document.getElementById('energy-table-error').classList.remove('hidden');
+            renderEnergyTable(generateMockSchedule(state.selectedArea, state.selectedDate)); 
         }
     };
 
@@ -625,10 +839,15 @@
         // Initial setup for the date picker
         document.getElementById('date-select').value = state.selectedDate;
         document.getElementById('current-area').textContent = state.selectedArea;
+        
+        // --- Event Listeners (FIXED) ---
         document.getElementById('area-select').addEventListener('change', handleAreaChange);
         document.getElementById('date-select').addEventListener('change', handleDateChange);
         document.getElementById('run-rec-btn').addEventListener('click', runRecommendation);
-        document.getElementById('confirm-rec-btn').addEventListener('click', confirmRecommendation);
+        document.getElementById('highlight-rec-btn-0').addEventListener('click', confirmRecommendation); // Primary rec button
+        document.getElementById('final-confirm-btn').addEventListener('click', showSmsModal); // Final booking button
+        document.getElementById('sms-modal-close').addEventListener('click', closeSmsModal);
+        document.getElementById('sms-send-btn').addEventListener('click', sendSms);
         
         // Populate duration selector
         const durationSelect = document.getElementById('rec-duration');
@@ -639,13 +858,9 @@
             durationSelect.appendChild(option);
         });
 
-        // Set initial value for the new '起始日期' display field
-        document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(new Date());
-
         initFirebase();
     };
 
-    // Expose functions for debugging (optional)
     window.state = state;
 </script>
 
@@ -688,9 +903,11 @@
                 <span id="current-area">台中區</span> 排程總覽 - <span id="current-date-display"></span>
             </h2>
 
+            <!-- Message boxes -->
             <div id="highlight-message" class="hidden absolute top-4 right-4 bg-yellow-100 border-l-4 border-secondary-yellow text-yellow-700 p-3 rounded-md shadow-md text-sm font-medium z-20"></div>
+            <div id="global-message-box" class="hidden absolute top-4 right-4 p-3 rounded-md shadow-md text-sm font-medium z-40 border"></div>
 
-            <!-- Error Container for Firestore issues -->
+            <!-- Error Container for Firebase/Firestore issues -->
             <div id="energy-table-error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md font-medium" role="alert">
                 載入排程數據錯誤。
             </div>
@@ -698,10 +915,7 @@
             <!-- Energy Table Container (Scrollable) -->
             <div id="energy-table-scroll-area" class="overflow-auto flex-1 shadow-lg">
                 <div id="vertical-capacity-grid-body" class="vertical-capacity-grid">
-                    <!-- Grid content (Headers and Cells) will be injected by JavaScript -->
-                    <div class="text-center p-8 text-gray-500 col-span-full">
-                        載入中... (請確保 Firebase 連線正常)
-                    </div>
+                    <!-- Grid content will be injected by JavaScript (either loading spinner or grid data) -->
                 </div>
             </div>
 
@@ -715,7 +929,6 @@
             <div class="space-y-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <h3 class="font-bold text-gray-700">約工需求輸入</h3>
                 
-                <!-- 新增欄位: 起始日期 (預設當前日期+星期) -->
                 <div>
                     <label for="rec-start-date-display" class="block text-sm font-medium text-gray-700 mb-1">起始日期</label>
                     <input 
@@ -727,7 +940,6 @@
                     >
                 </div>
 
-                <!-- 約工時長 (位於起始日期下方) -->
                 <div>
                     <label for="rec-duration" class="block text-sm font-medium text-gray-700 mb-1">約工時長 (0.5H ~ 4H)</label>
                     <select id="rec-duration" class="w-full rounded-lg border-gray-300 p-2 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue/30">
@@ -759,33 +971,78 @@
             </div>
 
             <!-- 4.2 推薦結果顯示區 (Output) -->
-            <div id="rec-output-container" class="hidden space-y-4 p-4 rounded-xl bg-yellow-50 border-2 border-secondary-yellow">
-                <h3 class="font-bold text-lg text-yellow-800 flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    最佳約工建議 (順工 > 近日)
-                </h3>
+            <div id="rec-output-container" class="hidden space-y-6">
                 
-                <div class="grid grid-cols-2 gap-2 text-sm">
-                    <div class="font-medium text-gray-600">最佳區域推薦:</div>
-                    <div id="rec-area-output" class="font-bold text-yellow-800"></div>
+                <!-- 主要推薦結果 -->
+                <div class="p-4 rounded-xl bg-yellow-50 border-2 border-secondary-yellow shadow-lg">
+                    <h3 class="font-bold text-lg text-yellow-800 mb-3">最佳約工建議 (順位 1)</h3>
                     
-                    <div class="font-medium text-gray-600">最快可約日期:</div>
-                    <div id="rec-date-output" class="font-bold text-yellow-800"></div>
-                    
-                    <div class="font-medium text-gray-600">建議裝機時間:</div>
-                    <div id="rec-time-output" class="font-bold text-yellow-800 text-base"></div>
+                    <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+                        <div class="font-medium text-gray-600">區域推薦:</div>
+                        <div id="rec-area-output" class="font-bold text-yellow-800"></div>
+                        
+                        <div class="font-medium text-gray-600">最快日期:</div>
+                        <div id="rec-date-output" class="font-bold text-yellow-800"></div>
+                        
+                        <div class="font-medium text-gray-600">建議時間:</div>
+                        <div id="rec-time-output" class="font-bold text-yellow-800 text-base"></div>
 
-                    <div class="font-medium text-gray-600">推薦工程師:</div>
-                    <div id="rec-engineer-output" class="font-bold text-yellow-800"></div>
+                        <div class="font-medium text-gray-600">推薦工程師:</div>
+                        <div id="rec-engineer-output" class="font-bold text-yellow-800"></div>
+                    </div>
+
+                    <button id="highlight-rec-btn-0" class="highlight-rec-btn w-full bg-secondary-yellow text-gray-900 p-2 rounded-lg font-bold hover:bg-yellow-400 transition duration-150 shadow-md text-sm">
+                        高亮顯示參考
+                    </button>
+                </div>
+                
+                <!-- 其他順位建議 -->
+                <div id="secondary-section" class="hidden mt-4">
+                    <h3 class="font-bold text-base text-gray-700 border-b pb-2 mb-2">[其他順位建議]</h3>
+                    <div id="secondary-recommendations-container" class="space-y-1">
+                        <!-- Secondary recommendations injected here -->
+                    </div>
                 </div>
 
-                <button id="confirm-rec-btn" class="w-full bg-secondary-yellow text-gray-900 p-3 rounded-lg font-bold hover:bg-yellow-400 transition duration-150 shadow-lg mt-3">
-                    [點擊確認] 跳轉並高亮顯示
+                <!-- 確定約工按鈕 -->
+                <button id="final-confirm-btn" data-rec-index="0" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition duration-150 shadow-xl mt-6">
+                    確定約工並發送通知
                 </button>
+
             </div>
 
         </aside>
 
+    </div>
+
+    <!-- Appointment SMS Modal Interface -->
+    <div id="appointment-sms-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center border-b pb-2 mb-4">
+                <h3 class="text-xl font-bold text-green-700">約工成功簡訊介面</h3>
+                <button id="sms-modal-close" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex justify-between text-sm">
+                    <label for="sms-recipient" class="font-medium text-gray-600">收件人 (客戶名):</label>
+                    <input type="text" id="sms-recipient" class="border border-gray-300 rounded-md p-1 w-1/2 text-right">
+                </div>
+                <div class="text-sm border-b pb-2">
+                    <p><span class="font-medium text-gray-600">派工工程師:</span> <span id="sms-engineer" class="font-semibold text-primary-blue"></span></p>
+                    <p><span class="font-medium text-gray-600">約工時段:</span> <span id="sms-details" class="font-semibold text-primary-blue"></span></p>
+                </div>
+
+                <label for="sms-content-textarea" class="block font-medium text-gray-700">簡訊內容編輯:</label>
+                <textarea id="sms-content-textarea" rows="6" class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm focus:border-green-500 focus:ring-green-500"></textarea>
+
+                <button id="sms-send-btn" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition duration-150 shadow-md">
+                    模擬送出簡訊
+                </button>
+            </div>
+        </div>
     </div>
 
 </div>
