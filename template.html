@@ -94,14 +94,25 @@
                     <div class="mb-5">
                         <label class="block text-sm font-medium text-gray-700 mb-2">原業者資訊 & 住家資訊</label>
                         <div class="flex flex-wrap gap-4">
+                            <!-- 競業轉換 (新增 ID 以利 JS 監聽) -->
                             <label class="flex items-center space-x-2">
-                                <input type="checkbox" name="origin_info" value="競業轉換" class="rounded text-blue-600 focus:ring-blue-500">
+                                <input type="checkbox" name="origin_info" id="check-competitive-conversion" value="競業轉換" class="rounded text-blue-600 focus:ring-blue-500">
                                 <span class="text-gray-600">競業轉換</span>
                             </label>
                             <label class="flex items-center space-x-2">
                                 <input type="checkbox" name="origin_info" value="新入住" class="rounded text-blue-600 focus:ring-blue-500">
                                 <span class="text-gray-600">新入住</span>
                             </label>
+                            <!-- 新增選項 -->
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_info" value="行動上網" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">行動上網</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_info" value="其他" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">其他</span>
+                            </label>
+                            
                             <span class="border-l border-gray-300 mx-2 h-6"></span>
                             <label class="flex items-center space-x-2">
                                 <input type="checkbox" name="house_type" value="自用" class="rounded text-blue-600 focus:ring-blue-500">
@@ -110,6 +121,40 @@
                             <label class="flex items-center space-x-2">
                                 <input type="checkbox" name="house_type" value="租屋" class="rounded text-blue-600 focus:ring-blue-500">
                                 <span class="text-gray-600">租屋</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 新增：原業者問題 (競業轉換勾選時顯示) -->
+                    <div id="origin-issue-field" class="mb-5 p-4 bg-gray-100 rounded-lg hidden">
+                        <label class="block text-sm font-bold text-gray-800 mb-2 flex items-center">
+                            原業者問題 (請勾選影響客戶轉換的原因，可複選)
+                            <i data-lucide="alert-triangle" class="w-4 h-4 ml-1 text-red-500"></i>
+                        </label>
+                        <div class="flex flex-wrap gap-4 text-sm">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_issue" value="價格" class="rounded text-red-600">
+                                <span class="text-gray-700">價格</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_issue" value="網路不穩" class="rounded text-red-600">
+                                <span class="text-gray-700">網路不穩</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_issue" value="他人轉介" class="rounded text-red-600">
+                                <span class="text-gray-700">他人轉介</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_issue" value="第四台轉換" class="rounded text-red-600">
+                                <span class="text-gray-700">第四台轉換</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_issue" value="合約快到期" class="rounded text-red-600">
+                                <span class="text-gray-700">合約快到期</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="origin_issue" value="其他" class="rounded text-red-600">
+                                <span class="text-gray-700">其他</span>
                             </label>
                         </div>
                     </div>
@@ -133,28 +178,42 @@
                         </div>
                     </div>
 
-                    <!-- 3. 硬體與坪數 -->
+                    <!-- 3. 硬體與坪數 (主要修改區) -->
                     <div class="mb-5 border-t pt-4 border-gray-100">
                          <label class="block text-sm font-medium text-gray-700 mb-2">分享器 & 坪數</label>
                          <div class="flex flex-wrap gap-4 items-center">
+                            <!-- 分享器選項 -->
                             <label class="flex items-center space-x-2">
                                 <input type="checkbox" name="hardware" value="分享器自備" class="rounded text-blue-600 focus:ring-blue-500">
                                 <span class="text-gray-600">分享器自備</span>
                             </label>
                             <label class="flex items-center space-x-2">
-                                <input type="checkbox" name="hardware" value="考慮加購" class="rounded text-blue-600 focus:ring-blue-500">
+                                <input type="checkbox" name="hardware" id="check-consider-purchase" value="考慮加購" class="rounded text-blue-600 focus:ring-blue-500">
                                 <span class="text-gray-600">考慮加購</span>
                             </label>
+                            
                             <span class="border-l border-gray-300 mx-2 h-6"></span>
+                            
+                            <!-- 坪數選項 (已修改) -->
                             <label class="flex items-center space-x-2">
-                                <input type="checkbox" name="area" value="35坪以下" class="rounded text-blue-600 focus:ring-blue-500">
-                                <span class="text-gray-600">35 坪以下</span>
+                                <input type="checkbox" name="area" value="40坪以下" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">40 坪以下</span>
                             </label>
                             <label class="flex items-center space-x-2">
-                                <input type="checkbox" name="area" value="35坪以上" class="rounded text-blue-600 focus:ring-blue-500">
-                                <span class="text-gray-600">35 坪以上</span>
+                                <input type="checkbox" name="area" value="40坪以上" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">40 坪以上</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="area" value="樓中樓或特殊格局" class="rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-gray-600">樓中樓或特殊格局</span>
                             </label>
                         </div>
+
+                        <!-- 分享器加購型號/台數 (考慮加購勾選時顯示) -->
+                        <div id="router-purchase-fields" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                            <!-- JS 會注入下拉選單內容 -->
+                        </div>
+                        
                         <!-- 光轉器：條件式顯示 -->
                         <div id="onu-field" class="mt-3 p-3 bg-indigo-50 rounded-lg hidden">
                             <label class="flex items-center space-x-2">
@@ -187,19 +246,43 @@
                         </div>
                     </div>
 
+                    <!-- 公關優惠 & 其他 (修改) -->
                     <div class="mb-5 border-t pt-4 border-gray-100">
                         <label class="block text-sm font-medium text-gray-700 mb-2">公關優惠 & 其他</label>
                         <div class="flex flex-wrap gap-4">
-                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="客介" class="rounded text-blue-600"><span>客介</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="客委員" class="rounded text-blue-600"><span>客委員</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="違約金" class="rounded text-blue-600"><span>違約金</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" name="pr_discount" value="其他" class="rounded text-blue-600"><span>其他</span></label>
+                            <!-- 客介客 (新增 ID) -->
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="pr_discount" id="check-customer-referral" value="客介客" class="rounded text-blue-600">
+                                <span>客介客</span>
+                            </label>
+                            <!-- 委員公關 -->
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="pr_discount" value="委員公關" class="rounded text-blue-600">
+                                <span>委員公關</span>
+                            </label>
+                            <!-- 違約金/未到期 -->
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="pr_discount" value="違約金/未到期" class="rounded text-blue-600">
+                                <span>違約金/未到期</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="pr_discount" value="其他" class="rounded text-blue-600">
+                                <span>其他</span>
+                            </label>
                         </div>
+                        
+                        <!-- 客介客 (推薦人資訊) (勾選時顯示) -->
+                        <div id="customer-referral-fields" class="mt-4 p-4 bg-gray-100 rounded-lg hidden">
+                            <!-- JS 會注入欄位內容 -->
+                        </div>
+                        <!-- 公關優惠 END -->
                     </div>
 
+                    <!-- 提醒文字更新 -->
                     <div class="mb-5 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
-                        <span class="font-bold text-orange-700">重要提醒:</span> 本人須待雙證正本
+                        <span class="font-bold text-orange-700">重要提醒:</span> 本人須在場，並持雙證正本
                     </div>
+                    <!-- 提醒文字更新 END -->
 
                     <!-- 可展開區塊 (Accordion) -->
                     <div class="space-y-3">
@@ -254,9 +337,16 @@
                             </div>
                         </details>
                     </div>
+                    
+                    <!-- 新增：客戶狀況備註 (疑慮與回覆重點) -->
+                    <div class="mt-6 border-t pt-4">
+                        <label for="client-status-notes" class="block text-sm font-medium text-gray-700 mb-1">客戶狀況備註 (疑慮與回覆重點)</label>
+                        <textarea id="client-status-notes" rows="3" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="記錄客戶的主要顧慮、反對點，以及您的關鍵回覆和承諾..."></textarea>
+                    </div>
+                    <!-- 新增：客戶狀況備註 END -->
 
                     <!-- 備註：下次追蹤日期時間 -->
-                    <div class="mt-6 border-t pt-4">
+                    <div class="mt-4">
                         <label for="next-follow-up" class="block text-sm font-medium text-gray-700 mb-1">下次追蹤日期時間</label>
                         <input type="datetime-local" id="next-follow-up" value="2025-10-30T18:00" class="border border-gray-300 rounded-lg p-2 text-sm focus:ring-blue-500 focus:border-blue-500">
                     </div>
@@ -435,7 +525,105 @@
         // 介面初始化檢查
         document.addEventListener('DOMContentLoaded', () => {
             checkCommunityType();
+            setupListeners();
         });
+
+        /**
+         * 設置所有事件監聽器
+         */
+        function setupListeners() {
+            // 競業轉換 (原業者問題)
+            const competitiveCheck = document.getElementById('check-competitive-conversion');
+            const originIssueField = document.getElementById('origin-issue-field');
+            if (competitiveCheck) {
+                competitiveCheck.addEventListener('change', (event) => {
+                    originIssueField.classList.toggle('hidden', !event.target.checked);
+                    if (!event.target.checked) {
+                        document.querySelectorAll('input[name="origin_issue"]').forEach(cb => cb.checked = false);
+                    }
+                });
+            }
+
+            // 分享器考慮加購 (新增)
+            const considerPurchaseCheck = document.getElementById('check-consider-purchase');
+            if (considerPurchaseCheck) {
+                considerPurchaseCheck.addEventListener('change', handleRouterPurchaseChange);
+            }
+
+            // 客介客 (新增)
+            const referralCheck = document.getElementById('check-customer-referral');
+            if (referralCheck) {
+                referralCheck.addEventListener('change', handleReferralChange);
+            }
+        }
+
+        /**
+         * 處理「考慮加購」的變動，顯示/隱藏分享器型號與台數下拉選單
+         */
+        function handleRouterPurchaseChange(event) {
+            const routerFieldsContainer = document.getElementById('router-purchase-fields');
+            if (!routerFieldsContainer) return;
+
+            if (event.target.checked) {
+                const routerModels = [
+                    'TP Link AX53(W)', 'TP Link AX53', 
+                    'TP Link Deco BE22(W)', 'TP Link Deco BE22'
+                ];
+                const quantities = [1, 2, 3, 4, 5, 6];
+
+                const htmlContent = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="router-model" class="block text-sm font-medium text-gray-700 mb-1">分享器型號</label>
+                            <select id="router-model" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="" disabled selected>-- 選擇型號 --</option>
+                                ${routerModels.map(model => `<option value="${model}">${model}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="router-quantity" class="block text-sm font-medium text-gray-700 mb-1">台數</label>
+                            <select id="router-quantity" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                ${quantities.map(i => `<option value="${i}">${i}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                `;
+                routerFieldsContainer.innerHTML = htmlContent;
+                routerFieldsContainer.classList.remove('hidden');
+            } else {
+                routerFieldsContainer.classList.add('hidden');
+                routerFieldsContainer.innerHTML = '';
+            }
+        }
+
+        /**
+         * 處理「客介客」的變動，顯示/隱藏客編/手機號碼與姓名輸入欄位
+         */
+        function handleReferralChange(event) {
+            const referralFieldsContainer = document.getElementById('customer-referral-fields');
+            if (!referralFieldsContainer) return;
+
+            if (event.target.checked) {
+                const htmlContent = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="referral-id-phone" class="block text-sm font-medium text-gray-700 mb-1">客編/手機號碼</label>
+                            <input type="text" id="referral-id-phone" placeholder="輸入客編或手機號碼" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="referral-name" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                            <input type="text" id="referral-name" placeholder="輸入推薦人姓名" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                `;
+                referralFieldsContainer.innerHTML = htmlContent;
+                referralFieldsContainer.classList.remove('hidden');
+            } else {
+                referralFieldsContainer.classList.add('hidden');
+                referralFieldsContainer.innerHTML = '';
+            }
+        }
+
 
         /**
          * 檢查客戶類型 (乙太/光化)，決定是否顯示「光轉器」欄位。
@@ -462,8 +650,8 @@
             reason2Select.innerHTML = '<option value="" disabled selected>-- 請選擇詳細原因 --</option>';
 
             if (value === '已約工') {
-                // 模擬進入約工系統的流程 (實務上會導頁或觸發後端 API)
-                alert('已約工：系統導向「約工排程介面」');
+                // 模擬進入約工系統的流程
+                console.log('已約工：系統導向「約工排程介面」');
                 reason2Container.classList.add('hidden');
                 return;
             } else if (value === '需追蹤') {
@@ -491,32 +679,31 @@
          */
         function showModal(modalId) {
             hideModal(); // 確保其他模態框已隱藏
-            document.getElementById('modal-overlay').classList.remove('hidden');
-            document.getElementById(`${modalId}-modal`).classList.remove('hidden');
-            document.getElementById(`${modalId}-modal`).parentNode.classList.add('flex', 'items-center', 'justify-center');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const targetModal = document.getElementById(`${modalId}-modal`);
+
+            modalOverlay.classList.remove('hidden');
+            targetModal.classList.remove('hidden');
+            modalOverlay.classList.add('flex', 'items-center', 'justify-center');
             
             // --- 針對 Mail 模態框：自動帶入客戶 Email ---
             if (modalId === 'mail') {
-                const clientEmailElement = document.getElementById('client-email');
-                const mailToInput = document.getElementById('mail-to');
-                
-                if (clientEmailElement && mailToInput) {
-                    const clientEmail = clientEmailElement.textContent.trim();
-                    mailToInput.value = clientEmail; // 自動帶入 Email
-                }
+                const clientEmail = document.getElementById('client-email').textContent.trim();
+                document.getElementById('mail-to').value = clientEmail;
             }
-            // ------------------------------------------
         }
 
         /**
          * 隱藏所有模態框
          */
         function hideModal() {
-            document.getElementById('modal-overlay').classList.add('hidden');
+            const modalOverlay = document.getElementById('modal-overlay');
+            modalOverlay.classList.add('hidden');
+            modalOverlay.classList.remove('flex', 'items-center', 'justify-center');
+            
             document.getElementById('transfer-modal').classList.add('hidden');
             document.getElementById('sms-modal').classList.add('hidden');
             document.getElementById('mail-modal').classList.add('hidden');
-            document.getElementById('transfer-modal').parentNode.classList.remove('flex', 'items-center', 'justify-center');
         }
 
         /**
@@ -535,12 +722,13 @@
             document.getElementById('mail-content').value = TEMPLATE_CONTENT[templateKey] || '';
         }
 
-        // 模態框功能模擬
+        // 模態框功能模擬 (使用 console.log 替代實際 API 呼叫)
         function submitTransfer() {
             const dept = document.getElementById('transfer-department').value;
             const demand = document.getElementById('transfer-demand').value;
             console.log(`轉單至部門: ${dept}, 需求: ${demand}`);
-            alert(`已成功將此單轉出至 ${dept} 部門處理。`);
+            // 使用 console.log 替代 alert
+            console.log(`已成功將此單轉出至 ${dept} 部門處理。`);
             hideModal();
         }
         
@@ -548,7 +736,7 @@
             const phone = document.getElementById('sms-phone').value;
             const content = document.getElementById('sms-content').value;
             console.log(`發送簡訊至 ${phone}, 內容: ${content}`);
-            alert(`簡訊已發送至 ${phone}`);
+            console.log(`簡訊已發送至 ${phone}`);
             hideModal();
         }
 
@@ -556,7 +744,7 @@
             const email = document.getElementById('mail-to').value;
             const content = document.getElementById('mail-content').value;
             console.log(`發送 Mail 至 ${email}, 內容: ${content}`);
-            alert(`Mail 已發送至 ${email}`);
+            console.log(`Mail 已發送至 ${email}`);
             hideModal();
         }
 
@@ -568,12 +756,14 @@
             // 檢查結單判斷是否完成
             const reason1 = document.getElementById('reason-1').value;
             if (!reason1) {
-                alert('結單前請務必點選「判斷原因 1」！');
+                console.error('結單前請務必點選「判斷原因 1」！');
                 return;
             }
 
             // 收集所有數據 (僅為範例，實際應組織為 JSON 結構)
             const followUpDate = document.getElementById('next-follow-up').value;
+            const notes = document.getElementById('client-status-notes').value;
+            
             const clientInfo = {
                 name: document.getElementById('client-name').textContent,
                 communityType: document.getElementById('client-type').textContent,
@@ -583,13 +773,24 @@
             const closureData = {
                 reason1: reason1,
                 reason2: reason1 === '未申裝' || reason1 === '無效單' ? document.getElementById('reason-2').value : 'N/A',
-                nextFollowUp: followUpDate
+                nextFollowUp: followUpDate,
+                clientNotes: notes
             };
             
+            // 收集新欄位數據 (僅為示範，確保數據能被記錄)
+            const routerModel = document.getElementById('router-model')?.value || 'N/A';
+            const routerQuantity = document.getElementById('router-quantity')?.value || 'N/A';
+            const referralIdPhone = document.getElementById('referral-id-phone')?.value || 'N/A';
+            const referralName = document.getElementById('referral-name')?.value || 'N/A';
+
             console.log("--- 紀錄已儲存 ---");
             console.log("客戶資訊:", clientInfo);
+            console.log("硬體加購:", { model: routerModel, quantity: routerQuantity });
+            console.log("客介客資訊:", { idPhone: referralIdPhone, name: referralName });
             console.log("結單數據:", closureData);
-            alert('溝通紀錄已成功儲存！');
+
+            // 使用 console.log 替代 alert
+            console.log('溝通紀錄已成功儲存！');
         }
 
     </script>
