@@ -257,10 +257,12 @@
                 "24+2", 
                 "24+3", 
                 "24+4", 
-                "3", "4", "8", "9", "13", "16", "19", 
+                "3", "4", "8", "9", 
+                "12", // 新增: 放在 9 與 13 中間
+                "13", "16", "19", 
                 "24", 
                 "30",
-                "30+4", // 新增: 放在 30 的下方
+                "30+4", 
             ];
 
             // 續約中華專屬選項
@@ -270,7 +272,7 @@
             ];
             
             // 主業權贈送所需月份
-            const requiredGiftMonths = ["24+1", "24+2", "24+3", "24+4", "12+2", "14+2", "30+4"]; // 雖然沒說要加，但通常帶+號的都屬於主業權贈送，若不確定可維持原樣。
+            const requiredGiftMonths = ["24+1", "24+2", "24+3", "24+4", "12+2", "14+2", "30+4"]; 
 
 
             /**
@@ -504,7 +506,6 @@
                     originalContractSelect.value = '無';
                     simDeliverySelect.value = '無須派送'; 
                 }
-                // 否則不做任何操作，讓用戶手動選擇 Block 2
             }
 
 
@@ -559,11 +560,11 @@
                 { name: "中華上二階", condition: (v) => v.telecomProvider === "中華", category: "General" },
                 { name: "違約單據上傳、送會辦", condition: (v) => v.originalContract === "須解約", category: "Contract" }, 
                 
-                // === 主業權贈送 - 條件維持不變 ===
+                // === 主業權贈送 ===
                 { 
                     name: "主業權贈送", 
                     condition: (v) => (v.jingnetStatus.includes("新裝機") || v.jingnetStatus.includes("續約客")) && 
-                                       requiredGiftMonths.includes(v.internetMonths), // 維持特定月份判斷
+                                       requiredGiftMonths.includes(v.internetMonths), 
                     category: "General" 
                 },
                 
@@ -571,32 +572,32 @@
                 { name: "退費(請確認客戶已繳費、已裝機，金額請貼記事本)", condition: (v) => v.jingnetStatus === "新裝機已付款" || v.jingnetStatus === "續約客已付款", category: "Refund" },
                 { name: "Chat─結單(會計)(請先確認客戶已繳費、已裝機)", condition: (v) => v.jingnetStatus.includes("續約客") || v.jingnetStatus.includes("期中客"), category: "Settlement" },
                 
-                // === 派送與 Chat 邏輯 - 維持不變 ===
+                // === 派送與 Chat 邏輯 ===
                 
-                // 1. Chat─寄送群: (維持舊有條件) OR (新增: 續約中華，即使是無須派送也要觸發)
+                // 1. Chat─寄送群
                 { 
                     name: "Chat─寄送群", 
-                    condition: (v) => (v.planStatus === '續約' && v.telecomProvider === '中華') || // 續約中華，強制觸發
+                    condition: (v) => (v.planStatus === '續約' && v.telecomProvider === '中華') || 
                                      ["寄卡", "親送", "eSIM"].includes(v.simDelivery) || 
                                      (v.telecomProvider === "遠傳" && v.simDelivery === "台中取卡"),
                     category: "Chat" 
                 },
                 
-                // 2. Chat--中華拍照群: 排除續約中華 (planStatus !== '續約')
+                // 2. Chat--中華拍照群
                 { 
                     name: "Chat--中華拍照群", 
                     condition: (v) => v.telecomProvider === "中華" && v.planStatus !== '續約', 
                     category: "Chat" 
                 },
                 
-                // 3. Chat─全區助理:
+                // 3. Chat─全區助理
                 { 
                     name: "Chat─全區助理", 
                     condition: (v) => v.simDelivery === "送卡",
                     category: "Chat" 
                 },
                 
-                // 4. 派卡網維單(無工單):
+                // 4. 派卡網維單(無工單)
                 { 
                     name: "派卡網維單(無工單)", 
                     condition: (v) => v.simDelivery === "送卡" && 
@@ -605,7 +606,7 @@
                     category: "Dispatch" 
                 },
 
-                // 5. 電商派案: 根據您的要求，改為所有情境只要表單填完就會出現
+                // 5. 電商派案
                 { name: "電商派案", condition: (v) => true, category: "Dispatch" }, 
             ];
 
@@ -625,7 +626,6 @@
                     updateSimDeliveryOptions(firstLineData.telecomProvider); 
 
                     // B. 處理「續約中華」預設值
-                    // 續約中華會強制設定 originalContractSelect.value 和 simDeliverySelect.value 為「無」/「無須派送」。
                     handleRenewalChunghwaDefaults(firstLineData);
                     
                     // C. 處理「遠傳」款項預設值
@@ -633,48 +633,42 @@
                     if (isFarEasTone && paymentTypeSelect.value === '') {
                         paymentTypeSelect.value = '無';
                     }
-                    // 否則，若切換回中華，清空預設值讓用戶選擇 (僅在今網狀態未選時才清空，避免覆蓋用戶選擇)
                     else if (firstLineData.telecomProvider === '中華' && paymentTypeSelect.value === '無' && 
                              document.getElementById('jingnetStatus').value === '') { 
                         paymentTypeSelect.value = '';
                     }
                 } else {
-                    // 若無門號資料，重置 SIM 派送選項
                     updateSimDeliveryOptions("");
                 }
 
                 // === 區塊一輸出邏輯 (Primary Output) ===
                 if (isBlock1Complete) {
                     const primaryOutputText = lineDataArray.map(line => {
-                        // 輸出格式: 方案狀態 + 電信 + 資費 / 月份
                         return `${line.planStatus}${line.telecomProvider}${line.monthlyFee}/${line.internetMonths}`;
-                    }).join('\n'); // 使用換行符號分隔
+                    }).join('\n');
                     
                     primaryOutputDiv.innerHTML = `<span class="primary-output-text">${primaryOutputText}</span>`;
                     primaryOutputDiv.dataset.plainText = primaryOutputText;
                 } else {
-                    primaryOutputDiv.innerHTML = '<p class="text-gray-500 italic">請在左側完整填寫區塊一資訊</p>';
+                    primaryOutputDiv.innerHTML = '<p class="text-gray-500 italic">請在左側填寫區塊一資訊</p>';
                     primaryOutputDiv.dataset.plainText = '';
                 }
 
                 
                 // === 區塊二工項清單邏輯 (Secondary Output) ===
                 
-                // 取得 Block 2 的單一輸入值 (以第一個門號為基準來推算 Block 2 變動)
                 const block2Values = {
                     jingnetStatus: document.getElementById('jingnetStatus').value,
                     originalContract: originalContractSelect.value,
                     paymentType: paymentTypeSelect.value, 
                     simDelivery: simDeliverySelect.value,
                     otherTaskDescription: document.getElementById('otherTaskDescription').value.trim(),
-                    // 帶入第一個門號的關鍵資訊給工項規則使用
                     planStatus: firstLineData ? firstLineData.planStatus : '',
                     telecomProvider: firstLineData ? firstLineData.telecomProvider : '',
-                    internetMonths: firstLineData ? firstLineData.internetMonths : '', // 傳遞網路月份給主業權判斷
+                    internetMonths: firstLineData ? firstLineData.internetMonths : '',
                 };
 
 
-                // 檢查是否所有**必要**欄位都有值 (包含所有 Block 1 Line + Block 2)
                 const requiredBlock2Fields = [
                     'jingnetStatus', 'originalContract', 'paymentType', 'simDelivery'
                 ];
@@ -690,7 +684,7 @@
                     return;
                 }
 
-                // 2. 判斷符合的工項 (使用第一個門號的資訊結合 Block 2 的資訊)
+                // 2. 判斷符合的工項
                 let requiredWorkItems = workItemRules
                     .filter(rule => rule.condition(block2Values))
                     .map(rule => ({ name: rule.name, category: rule.category }));
@@ -708,10 +702,8 @@
 
                 // 5. 處理中華紅字提醒
                 const isChunghwa = block2Values.telecomProvider === "中華";
-                // 警告針對非續約的中華情境
                 const warningMessage = '⚠️ 若客戶無法配合時間至公司派照取卡，請另派卡網維單';
                 
-                // 檢查是否為非續約的中華，如果是，則顯示警告。
                 if (isChunghwa && block2Values.planStatus !== '續約') {
                     chunghwaMidTermWarning.innerHTML = warningMessage;
                     chunghwaMidTermWarning.classList.remove('hidden');
@@ -748,10 +740,9 @@
                     return;
                 }
                 
-                // Using document.execCommand('copy') for better compatibility in iFrames
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
-                textarea.style.position = 'fixed'; // Avoid scrolling to bottom
+                textarea.style.position = 'fixed'; 
                 document.body.appendChild(textarea);
                 textarea.select();
                 try {
@@ -769,8 +760,6 @@
             }
 
             // --- Event Listeners ---
-            
-            // 監聽 Block 2 欄位變動
             document.getElementById('jingnetStatus').addEventListener('change', calculateWorkItems);
             originalContractSelect.addEventListener('change', calculateWorkItems);
             paymentTypeSelect.addEventListener('change', calculateWorkItems);
@@ -778,7 +767,6 @@
             document.getElementById('otherTaskDescription').addEventListener('input', calculateWorkItems);
 
 
-            // 複製按鈕監聽
             copyPrimaryButton.addEventListener('click', () => {
                 const text = primaryOutputDiv.dataset.plainText;
                 copyToClipboard(text, copyPrimaryButton, confirmationMessage);
@@ -789,7 +777,6 @@
                 copyToClipboard(text, copyWorkItemsButton, confirmationMessage);
             });
 
-            // === Multi-line control listeners ===
             multipleLinesCheckbox.addEventListener('change', () => {
                 const isChecked = multipleLinesCheckbox.checked;
                 if (isChecked) {
@@ -808,8 +795,8 @@
             });
 
             // --- Initial Setup ---
-            renderPhoneLines(1); // 初始渲染 1 個門號
-            calculateWorkItems(); // 首次計算以確保預設值正確
+            renderPhoneLines(1); 
+            calculateWorkItems(); 
         });
     </script>
 </body>
