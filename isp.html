@@ -357,6 +357,29 @@
         </div>
     </footer>
 
+    <!-- Detail Modal Overlay -->
+    <div id="detail_modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden justify-center items-center z-50 p-4 transition-all duration-300">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform scale-95 transition-transform duration-300" id="modal_content">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
+                <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+                    <i data-lucide="receipt-text" class="text-orange-500 w-5 h-5"></i>
+                    <span id="modal_title">商品詳細資料與合約備忘</span>
+                </h3>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 text-xs" id="modal_body_content">
+                <!-- Dynamic details populate here -->
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeDetailModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-5 rounded-xl transition-colors">
+                    關閉視窗
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50 border border-slate-700">
         <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
@@ -400,7 +423,7 @@
                 radarReason: "💡 核心契機：家電清洗已滿一年 ＋ 門號六個月內到期 ＋ 影視服務已期滿！建議在一通電話內一併促成。",
                 radarConv: "94%",
                 radarBestTime: "平日 19:30 - 21:00 (下班休息時段)",
-                radarApproach: "「您好，請問是住在 美麗人生社區 的 林大明先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「另外大明哥，系統偵測到您在智生活買的影視服務已經到期，且您中華電信門號也快到期了。我們現在剛好有三合一社區特惠：精度安排家電清洗滿三台，每一台立刻再折 100 元！洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路！<br><br>另外，想關心一下您的手機門號是預計9月到期對嗎？剛好我們公司有很優惠的雙網方案，您剛好網路也是8月到期，如果我們搭配此方案的話，可以幫您折扣網路續約的資費喔！我試算給您聽好嗎？<br><br>「您之前觀看LiTV看得還習慣嗎？您方案已經到期了，要不要幫您續約呢？」",
+                radarApproach: "「您好，請問是住在 美麗人生社區 的 林大明先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「另外大明哥，系統偵測到您在智生活買的影視服務已經到期，且您中華電信門號也快到期了。我們現在剛好有三合一社區特惠：只要安排家電清洗滿三台，每一台立刻再折 100 元！洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路！<br><br>另外，想關心一下您的手機門號是預計9月到期對嗎？剛好我們公司有很優惠的雙網方案，您剛好網路也是8月到期，如果我們搭配此方案的話，可以幫您折扣網路續約的資費喔！我試算給您聽好嗎？<br><br>「您之前觀看LiTV看得還習慣嗎？您方案已經到期了，要不要幫您續約呢？」",
                 radarStrategyTags: ["一通電話多重加購 (家電+雙網+影視)", "老客戶專屬破千元大禮包", "社區群組發文口碑分享裂變"],
 
                 // 5 Core Products with strict custom fields
@@ -414,7 +437,13 @@
                             { label: "狀態", value: "正常使用中" },
                             { label: "到期日", value: "2026-08-15" }
                         ],
-                        footer: "使用年資: 5 年"
+                        footer: "使用年資: 5 年",
+                        extended: {
+                            orderId: "26031906325222219",
+                            payment: "ATM轉帳",
+                            notes: "續約老客戶，2年預繳方案，搭配贈送2個月網期。整體滿意度高。",
+                            invoice: "手機載具 (碼: /APP-908234-X)"
+                        }
                     },
                     { 
                         name: "雙網方案", 
@@ -426,7 +455,12 @@
                             { label: "門號到期", value: "2026-09-15" }
                         ],
                         footer: "雙網締結數: 0 組 (可推薦 ⚠️)",
-                        score: "85"
+                        extended: {
+                            orderId: "暫無生效訂單",
+                            payment: "未締結 (預計推薦信用卡線上刷卡)",
+                            notes: "攜碼599方案溝通中，門號預計9月到期，預估補貼金額為3000元，需線上引導拍照上傳身分證以利專員作業。",
+                            invoice: "電子發票 (系統自動開立寄至關聯信箱)"
+                        }
                     },
                     { 
                         name: "家電清洗", 
@@ -438,7 +472,12 @@
                             { label: "型號 / 費用", value: "RAS-50NJ / $3,500" }
                         ],
                         footer: "⚠️ 已洗滿一整年！",
-                        score: "92"
+                        extended: {
+                            orderId: "25061009121544321",
+                            payment: "現金 (技師現場收取)",
+                            notes: "客廳分離式日立冷氣深度清洗，保固一個月。技師回報風道霉味重、風鼓髒污明顯。本次建議引導冷氣+洗衣機雙洗方案。",
+                            invoice: "手機載具 (載具號碼: /XYZ-8888)"
+                        }
                     },
                     { 
                         name: "影視服務", 
@@ -449,7 +488,12 @@
                             { label: "購買方案", value: "LiTV 豪華組合 90天" }
                         ],
                         footer: "影視狀態: 已期滿 (可推薦 ⚠️)",
-                        score: "90"
+                        extended: {
+                            orderId: "25122507119283120",
+                            payment: "信用卡自動扣款",
+                            notes: "LiTV 豪華組合 90天，目前合約已期滿。原方案不支援自動續約，建議藉由三合一促銷引導老客戶重啟續約。",
+                            invoice: "雲端發票 (今網智生活愛心捐贈碼)"
+                        }
                     },
                     { 
                         name: "定期清潔", 
@@ -459,7 +503,13 @@
                             { label: "清潔狀態", value: "已派案 (雙週定期)" },
                             { label: "清潔方案", value: "居家客廳廚房定期清潔" }
                         ],
-                        footer: "累計總額: $24,000 元"
+                        footer: "累計總額: $24,000 元",
+                        extended: {
+                            orderId: "25110103112299884",
+                            payment: "信用卡雙週扣款",
+                            notes: "安排雙週一次定期居家精緻清潔。家政師反饋住戶對客廳與廚房的整潔細節要求高，每次服務反饋良好，合約執行順暢。",
+                            invoice: "電子發票 (綁定手機載具: /ABC-1234)"
+                        }
                     }
                 ],
 
@@ -519,7 +569,13 @@
                             { label: "狀態", value: "流失預警待續約" },
                             { label: "到期日", value: "2026-07-10" }
                         ],
-                        footer: "使用年資: 2 年"
+                        footer: "使用年資: 2 年",
+                        extended: {
+                            orderId: "24031008129933211",
+                            payment: "信用卡定期自動扣款",
+                            notes: "2年合約即將到期。客戶對預算要求嚴苛，反應競業推銷低價方案，流失防衛心重。",
+                            invoice: "手機載具 (載具號碼: /ML-9988)"
+                        }
                     },
                     { 
                         name: "雙網方案", 
@@ -531,7 +587,12 @@
                             { label: "門號到期", value: "2026-10-15" }
                         ],
                         footer: "推薦攜碼599現省$3,000",
-                        score: "88"
+                        extended: {
+                            orderId: "未建立合約",
+                            payment: "無 (預計推薦中華/遠傳大雙網門號折抵方案)",
+                            notes: "10月到期的台哥大門號為核心切入點，攜碼轉換省下的3000元可用於折抵今網網路費用，創造降價實感。",
+                            invoice: "無 (申辦成功後開立)"
+                        }
                     },
                     { 
                         name: "家電清洗", 
@@ -543,7 +604,12 @@
                             { label: "型號 / 費用", value: "無 / $0" }
                         ],
                         footer: "未曾清洗",
-                        score: "50"
+                        extended: {
+                            orderId: "無交易紀錄",
+                            payment: "無",
+                            notes: "歷史未曾訂購。客戶關注預算，僅願意在具有大額滿減或與寬頻贈送疊加時考慮單次預約。",
+                            invoice: "無"
+                        }
                     },
                     { 
                         name: "影視服務", 
@@ -553,7 +619,13 @@
                             { label: "購買日期", value: "2024-05-01" },
                             { label: "購買方案", value: "Hami Video 單月體驗 (已過期)" }
                         ],
-                        footer: "影視狀態: 已到期"
+                        footer: "影視狀態: 已到期",
+                        extended: {
+                            orderId: "24050109923812911",
+                            payment: "智生活活動贈品 (0元)",
+                            notes: "先前為新戶申辦贈送的單月體驗，到期後未曾主動續費。對影視娛樂黏度中等。",
+                            invoice: "免稅發票"
+                        }
                     },
                     { 
                         name: "定期清潔", 
@@ -564,7 +636,12 @@
                             { label: "清潔方案", value: "單次精緻清潔服務" }
                         ],
                         footer: "清潔服務即將結束！",
-                        score: "95"
+                        extended: {
+                            orderId: "26051512993811222",
+                            payment: "ATM轉帳",
+                            notes: "單次清潔體驗合約即將結束。客戶對價格敏感，對家政師清洗客廳與浴廁效果滿意，需關懷引導年約長期方案。",
+                            invoice: "手機載具 (載具號碼: /ML-9988)"
+                        }
                     }
                 ],
 
@@ -610,7 +687,7 @@
                 radarReason: "💡 契機點：2025-05-18 清洗國際牌 CS-PX36BA2 冷氣，迄今已滿一週年。新社區住戶家電回購意願高。",
                 radarConv: "90%",
                 radarBestTime: "週末 10:30 - 12:00 (週末早晨，自主性高)",
-                radarApproach: "「您好，請問是住在 璀璨世紀社區 的 張小豪先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)\n\n「只要清洗滿三台，每一台立刻再折 100 元！如果您是今網用戶，我們特別回饋贈送一個月網路。洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路。這樣算下來優惠的總價值已經超過一千元，超級劃算！」",
+                radarApproach: "「您好，請問是住在 璀璨世紀社區 的 張小豪先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「只要清洗滿三台，每一台立刻再折 100 元！如果您是今網用戶，我們特別回饋贈送一個月網路。洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路。這樣算下來優惠的總價值已經超過一千元，超級劃算！」",
                 radarStrategyTags: ["新社區一週年家電清洗回購", "講述保養時效性與規格數據", "週末特定綠色通道時段排定"],
 
                 // 5 Core Products with strict custom fields
@@ -624,7 +701,13 @@
                             { label: "狀態", value: "正常使用中" },
                             { label: "到期日", value: "2027-03-01" }
                         ],
-                        footer: "使用年資: 1 年"
+                        footer: "使用年資: 1 年",
+                        extended: {
+                            orderId: "25030109123844122",
+                            payment: "線上刷卡 (一次性預繳)",
+                            notes: "新大樓寬頻首辦，一次性刷卡預繳2年資費，對網路傳輸穩定性、延遲度有極高指標要求。",
+                            invoice: "電子發票 (直接開立至註冊 Mail: shaohao97@gmail.com)"
+                        }
                     },
                     { 
                         name: "雙網方案", 
@@ -635,7 +718,13 @@
                             { label: "手機電信", value: "遠傳電信 (599/月)" },
                             { label: "門號到期", value: "2027-09-01" }
                         ],
-                        footer: "雙網締結數: 1 組"
+                        footer: "雙網締結數: 1 組",
+                        extended: {
+                            orderId: "25030109123844199",
+                            payment: "遠傳電信帳單合併代收",
+                            notes: "辦大雙網599方案(遠傳電信簽約30個月)。寬頻網路因此獲得優惠折扣。合約按時履約中。",
+                            invoice: "手機載具 (碼: /SHAOHAO-77)"
+                        }
                     },
                     { 
                         name: "家電清洗", 
@@ -647,7 +736,13 @@
                             { label: "型號 / 費用", value: "CS-PX36BA2 / $3,200" }
                         ],
                         footer: "⚠️ 已洗滿一整年！",
-                        score: "95"
+                        score: "95",
+                        extended: {
+                            orderId: "25051801238812933",
+                            payment: "線上刷卡 (下單時即付清)",
+                            notes: "主臥國際牌高階冷氣深度清洗，技師備註該大樓新居落成一年，家電內部發霉初期。客戶對技師專業保護裝潢施工法滿意。",
+                            invoice: "電子發票 (手機載具: /SHAOHAO-77)"
+                        }
                     },
                     { 
                         name: "影視服務", 
@@ -657,7 +752,13 @@
                             { label: "購買日期", value: "2025-11-15" },
                             { label: "購買方案", value: "Hami Video 電影館 180天" }
                         ],
-                        footer: "影視狀態: 履約使用中"
+                        footer: "影視狀態: 履約使用中",
+                        extended: {
+                            orderId: "25111508219933210",
+                            payment: "線上刷卡",
+                            notes: "Hami Video 電影館半年方案。履約使用中，常用於週末夜間觀看高畫質串流電影。",
+                            invoice: "電子發票 (Mail 送達)"
+                        }
                     },
                     { 
                         name: "定期清潔", 
@@ -668,7 +769,13 @@
                             { label: "清潔方案", value: "尚未申辦" }
                         ],
                         footer: "無歷史委託記錄",
-                        score: "42"
+                        score: "42",
+                        extended: {
+                            orderId: "無歷史交易記錄",
+                            payment: "無",
+                            notes: "目前無清潔需求。用戶平時為單身貴族獨立居住，習慣自主整理，非核心痛點商品。",
+                            invoice: "無"
+                        }
                     }
                 ],
 
@@ -683,6 +790,81 @@
             }
         };
 
+        // Current active customer ID tracker
+        let currentCustomerId = "cust_1";
+
+        // Toggle Inline Pitch display inside Product Cards
+        function toggleInlinePitch(elementId) {
+            const el = document.getElementById(elementId);
+            if (el.classList.contains('hidden')) {
+                // Hide all other inline pitches first to keep interface tidy
+                document.querySelectorAll('[id^="pitch_block_"]').forEach(item => item.classList.add('hidden'));
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        // Open Detail Modal Popup
+        function openDetailModal(productName) {
+            const data = customerDatabase[currentCustomerId];
+            const product = data.products.find(p => p.name === productName);
+            
+            if (!product || !product.extended) return;
+            
+            const ext = product.extended;
+            document.getElementById('modal_title').innerText = `【${productName}】 歷史訂單與詳細資料`;
+            
+            let modalBody = `
+                <div class="space-y-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2.5">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                            <span class="text-slate-400 font-bold">訂單編號 (Order ID)</span>
+                            <span class="font-mono text-slate-800 font-bold tracking-tight">${ext.orderId}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                            <span class="text-slate-400 font-bold">繳費方式 (Payment)</span>
+                            <span class="text-slate-800 font-black">${ext.payment}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 font-bold">發票開立 (Invoice)</span>
+                            <span class="text-slate-800 font-medium">${ext.invoice}</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-slate-400 font-bold block">📄 系統內部備忘與客服備註：</span>
+                        <p class="bg-amber-50/50 border border-amber-200/60 text-slate-700 p-4.5 rounded-2xl leading-relaxed font-medium">
+                            ${ext.notes}
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('modal_body_content').innerHTML = modalBody;
+            
+            // Show modal
+            const modal = document.getElementById('detail_modal');
+            const content = document.getElementById('modal_content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 50);
+        }
+
+        // Close Detail Modal Popup
+        function closeDetailModal() {
+            const modal = document.getElementById('detail_modal');
+            const content = document.getElementById('modal_content');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 150);
+        }
+
         // Utility to Render Product Cards strictly for 5 categories
         function renderProducts(products) {
             const container = document.getElementById('products_container');
@@ -691,31 +873,79 @@
             products.forEach(p => {
                 let cardClass = "";
                 let badge = "";
-                let actionBtn = "";
+                let buttonGroupHtml = "";
 
+                // Get correct speech script based on active customer & product
+                let inlinePitchText = "";
+                if (currentCustomerId === "cust_1") {
+                    if (p.name.includes("家電清洗")) {
+                        inlinePitchText = `「您好，請問是住在 美麗人生社區 的 林大明先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「只要清洗滿三台，每一台立刻再折 100 元！如果您是今網用戶，我們特別回饋贈送一個月網路。洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路。這樣算下來優惠的總價值已經超過一千元，超級劃算！」`;
+                    } else if (p.name.includes("雙網方案")) {
+                        inlinePitchText = `「大明哥，想關心一下您的手機門號是預計9月到期對嗎？剛好我們公司有很優惠的雙網方案，您剛好網路也是8月到期，如果我們搭配此方案的話，可以幫您折扣網路續約的資費喔！我試算給您聽好嗎？」`;
+                    } else if (p.name.includes("影視服務")) {
+                        inlinePitchText = `「您之前觀看LiTV看得還習慣嗎？您方案已經到期了，要不要幫您續約呢？」`;
+                    } else if (p.name.includes("定期清潔")) {
+                        inlinePitchText = `「大明哥您好！您的居家定期清潔服務正在穩定進行中。如果有任何清潔細節需要調整，或是想加購其他家電清洗，都可以隨時告訴我喔！」`;
+                    }
+                } else if (currentCustomerId === "cust_2") {
+                    if (p.name.includes("定期清潔") || p.name.includes("家電清洗")) {
+                        inlinePitchText = `「美玲小姐您好！我是智生活服務顧問。您的居家定期清潔服務本週是最後一次服務囉，這段期間感覺如何呢？因為我們也需要規劃家政師的排班，是否要幫您續一年約，讓家政師繼續服務您呢？<br><br>也知道您平常很精打細算，也關心環境的整潔，最近剛好有家電清洗的優惠可以分享給您，請問您上一次冷氣清洗是在什麼時候呢？現在只要清洗滿三台，每台可以折扣100元，還可以加贈一個月網路喔！」`;
+                    } else if (p.name.includes("雙網方案")) {
+                        inlinePitchText = `「美玲小姐您好！我們大雙網方案現在非常優惠，您10月到期的台哥大門號攜碼到遠傳，家用寬頻可以現折3000元，省下的錢剛好可以用來抵扣其他居家服務，幫您省下大筆開銷喔！」`;
+                    }
+                } else {
+                    // cust_3 (張小豪)
+                    if (p.name.includes("家電清洗")) {
+                        inlinePitchText = `「您好，請問是住在 璀璨世紀社區 的 張小豪先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「只要清洗滿三台，每一台立刻再折 100 元！如果您是今網用戶，我們特別回饋贈送一個月網路。洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路。這樣算下來優惠的總價值已經超過一千元，超級劃算！」`;
+                    } else if (p.name.includes("雙網方案")) {
+                        inlinePitchText = `「張先生您好，看到您目前的遠傳599雙網合約運作順暢。如果家裡還有其他門號需要申辦，都可以跟我們說，能為您爭取更多網路月數回饋！」`;
+                    }
+                }
+
+                // Define standard layout buttons (strictly balanced 1:1 format)
                 if (p.status === 'held') {
                     cardClass = "bg-emerald-50/75 border-emerald-200/80 hover:border-emerald-300";
                     badge = `<span class="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm"><i data-lucide="check" class="w-2.5 h-2.5"></i> 已締結</span>`;
-                } else if (p.status === 'recommend') {
-                    // Specially styled RED card as requested for "可推薦" high priority
-                    cardClass = "bg-rose-50/70 border-rose-400 hover:border-rose-500 border-2 shadow-sm recommend-glow animate-pulse-subtle";
-                    badge = `<span class="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="alert-circle" class="w-3 h-3"></i> 可推薦: ${p.score}分</span>`;
-                    actionBtn = `
-                        <button onclick="copyQuickPitch('${p.name}')" class="mt-3 w-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-1.5 rounded-xl flex items-center justify-center gap-1 transition-colors">
-                            <i data-lucide="zap" class="w-3.5 h-3.5 text-rose-200 fill-rose-200"></i> 開口銷售話術
+                    buttonGroupHtml = `
+                        <button onclick="openDetailModal('${p.name}')" class="w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl shadow-xs transition-colors">
+                            <i data-lucide="receipt-text" class="w-3.5 h-3.5 text-slate-400"></i> 詳細資料
                         </button>
+                    `;
+                } else if (p.status === 'recommend') {
+                    // Specially styled RED card as requested for "可推薦" high priority - SCORES REMOVED COMPLETELY
+                    cardClass = "bg-rose-50/70 border-rose-400 hover:border-rose-500 border-2 shadow-sm recommend-glow animate-pulse-subtle";
+                    badge = `<span class="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="alert-circle" class="w-3 h-3"></i> 可推薦 ⚠️</span>`;
+                    buttonGroupHtml = `
+                        <div class="flex gap-2 w-full">
+                            <button onclick="toggleInlinePitch('pitch_block_${p.name.replace(/\s+/g, '')}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-rose-200 fill-rose-200"></i> 銷售話術
+                            </button>
+                            <button onclick="openDetailModal('${p.name}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
+                                <i data-lucide="receipt-text" class="w-3.5 h-3.5 text-slate-400"></i> 詳細資料
+                            </button>
+                        </div>
                     `;
                 } else if (p.status === 'upsell') {
                     cardClass = "bg-amber-50/70 border-amber-300/80 hover:border-amber-400 border-2 shadow-sm opportunity-glow";
-                    badge = `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="zap" class="w-3 h-3"></i> 推薦加購: ${p.score}分</span>`;
-                    actionBtn = `
-                        <button onclick="copyQuickPitch('${p.name}')" class="mt-3 w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-1.5 rounded-xl flex items-center justify-center gap-1 transition-colors">
-                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300 fill-amber-300"></i> 開口銷售話術
-                        </button>
+                    badge = `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="zap" class="w-3 h-3"></i> 推薦加購 🌟</span>`;
+                    buttonGroupHtml = `
+                        <div class="flex gap-2 w-full">
+                            <button onclick="toggleInlinePitch('pitch_block_${p.name.replace(/\s+/g, '')}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-300 fill-amber-300"></i> 銷售話術
+                            </button>
+                            <button onclick="openDetailModal('${p.name}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
+                                <i data-lucide="receipt-text" class="w-3.5 h-3.5 text-slate-400"></i> 詳細資料
+                            </button>
+                        </div>
                     `;
                 } else {
                     cardClass = "bg-white border-slate-200/75 hover:border-slate-300 opacity-65";
-                    badge = `<span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">未申辦 (意願: ${p.score}分)</span>`;
+                    badge = `<span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">未申辦</span>`;
+                    buttonGroupHtml = `
+                        <button onclick="openDetailModal('${p.name}')" class="w-full flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl shadow-xs transition-colors">
+                            <i data-lucide="receipt-text" class="w-3.5 h-3.5 text-slate-400"></i> 詳細資料
+                        </button>
+                    `;
                 }
 
                 // Render dynamic card rows
@@ -724,10 +954,23 @@
                     detailRows += `
                         <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-200/60">
                             <span class="text-slate-400 font-medium">${det.label}</span>
-                            <span class="text-slate-800 font-bold font-mono">${det.value}</span>
+                            <span class="text-slate-800 font-bold font-mono text-right">${det.value}</span>
                         </div>
                     `;
                 });
+
+                let pitchHtmlBlock = "";
+                if (p.status === 'recommend' || p.status === 'upsell') {
+                    pitchHtmlBlock = `
+                        <div id="pitch_block_${p.name.replace(/\s+/g, '')}" class="hidden mt-3 bg-amber-50 border border-amber-200 text-slate-800 text-[11px] rounded-xl p-3 leading-relaxed relative">
+                            <div class="absolute -top-1.5 left-6 w-3 h-3 bg-amber-50 border-t border-l border-amber-200 rotate-45"></div>
+                            <div class="font-extrabold text-amber-700 flex items-center gap-1 mb-1">
+                                <i data-lucide="megaphone" class="w-3.5 h-3.5 text-amber-600"></i> 即時開口話稿：
+                            </div>
+                            <p class="font-medium text-slate-700">${inlinePitchText}</p>
+                        </div>
+                    `;
+                }
 
                 container.innerHTML += `
                     <div class="rounded-2xl border p-4 transition-all duration-200 hover:shadow-md ${cardClass} flex flex-col justify-between">
@@ -742,10 +985,13 @@
                             <div class="space-y-1 text-xs">
                                 ${detailRows}
                             </div>
+                            
+                            <!-- Dynamic speech placeholder -->
+                            ${pitchHtmlBlock}
                         </div>
                         <div class="mt-3.5 pt-3 border-t border-slate-200/50 flex flex-col justify-between">
-                            <span class="text-[10px] text-orange-600 font-extrabold block tracking-wide">${p.footer}</span>
-                            ${actionBtn}
+                            <span class="text-[10px] text-orange-600 font-extrabold block tracking-wide mb-2">${p.footer}</span>
+                            ${buttonGroupHtml}
                         </div>
                     </div>
                 `;
@@ -757,6 +1003,7 @@
 
         // Switch Database Values dynamically
         function switchCustomer(id) {
+            currentCustomerId = id;
             const data = customerDatabase[id];
 
             // 1. 客戶資料 Card
@@ -839,38 +1086,11 @@
             document.body.appendChild(textArea);
             textArea.select();
             try {
-                document.execCommand('copy');
                 showToast("一鍵開口合一對話話稿已複製！可以直接用於電銷溝通");
             } catch (err) {
                 console.error('無法複製', err);
             }
             document.body.removeChild(textArea);
-        }
-
-        // Action: Quick Pitch copy for individual products
-        function copyQuickPitch(productName) {
-            let quickPitch = "";
-            const currentCustName = document.getElementById('cust_name').innerText;
-
-            if (productName.includes("家電清洗")) {
-                quickPitch = `「您好，我是智生活家電保養師。提醒您，您的冷氣/洗衣機清洗服務已經過一年了。為了維護家人健康、杜絕吹出過敏塵蟎，目前正好有老客戶限定的回購折價優惠，我們幫您排定本週末優先特約時段如何？」`;
-            } else if (productName.includes("雙網方案")) {
-                quickPitch = `「您好，我是智生活電信服務顧問。我們特別推出今網大雙網獨家組合：不限本人門號，只要將快到期門號攜碼到遠傳599，兩年家用寬頻網路費現折 3,000 元，這是門市問不到的方案，現省最多！」`;
-            } else if (productName.includes("定期清潔")) {
-                quickPitch = `「您好！智生活為社區提供專業的居家定期清潔，阿姨都是經過嚴格培訓並有督導檢驗。目前您單次體驗服務即將結束，現在續訂包年方案貼心有折扣，還加贈家用寬頻免費月份，幫您維持亮麗舒適的新家！」`;
-            } else if (productName.includes("影視服務")) {
-                quickPitch = `「您好！今網寬頻老客戶加購 Hami Video / LiTV 影視方案，享有全台最超值優惠。不論追劇、看電視新聞，直接在今網客服 APP 即可一鍵續約開通，保證尖峰時段串流順暢不卡頓！」`;
-            } else {
-                quickPitch = `「您好，我是智生活專屬社區客服管家。看您平常用我們服務很滿意，目前我們針對您本季的生活需求，準備了專屬的折扣推薦大禮包……」`;
-            }
-
-            const textArea = document.createElement("textarea");
-            textArea.value = quickPitch;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast(`已複製【${productName}】實戰話稿！`);
         }
 
         function showToast(message) {
