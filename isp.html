@@ -3,1049 +3,876 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程師排程與約工推薦系統</title>
+    <title>智生活 User Profile - 客資360 & AI智慧銷售儀表板</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/isBetween.min.js"></script>
-    <script>
-        dayjs.extend(dayjs_plugin_isBetween);
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-blue': '#1e40af', // 專業藍
-                        'secondary-yellow': '#facc15', // 亮黃色 (推薦高亮)
-                        'task-install': '#10b981', // 裝機綠
-                        'task-repair': '#06b6d4', // 維修青
-                        'task-project': '#3b82f6', // 工程藍
-                        'off-hour': '#4b5563', // 深灰 (非工時)
-                        'lunch-break': '#9ca3af', // 淺灰 (休息)
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Lucide Icons for Premium UI Feel -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        
-        /* 垂直網格容器設定 */
-        .vertical-capacity-grid {
-            /* 1個時間欄 + 4個特殊任務欄 + 13個工程師欄 = 18欄 */
-            display: grid;
-            grid-template-columns: 80px repeat(17, minmax(60px, 1fr)); 
-            grid-auto-rows: 40px; /* 每 0.5 小時一個固定高度的行 */
-            min-width: 1300px; /* 確保有足夠空間顯示所有欄位 */
-            border: 1px solid #e5e7eb;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
         }
-
-        /* 網格單元格通用樣式 */
-        .grid-cell {
-            border-right: 1px solid #e5e7eb;
-            border-bottom: 1px dashed #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            overflow: hidden;
-            transition: background-color 0.15s;
-            position: relative;
-        }
-
-        /* 頂部標籤列 */
-        .grid-header {
-            background-color: #e5e7eb;
-            border-bottom: 1px solid #9ca3af;
-            font-weight: bold;
-            font-size: 12px;
-            color: #374151;
-            padding: 8px 4px;
-            text-align: center;
-            /* Ensure headers are 40px tall to match rows */
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .time-label-cell {
-            background-color: #f3f4f6;
-            font-weight: bold;
-            color: #4b5563;
-            border-right: 1px solid #9ca3af;
-        }
-
-        /* 任務單元格樣式 */
-        .task-cell {
-            cursor: pointer;
-        }
-        .task-cell:hover:not(.off-hour, .lunch-break) {
-            opacity: 0.9;
-        }
-
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .opportunity-glow {
+            box-shadow: 0 0 22px rgba(249, 115, 22, 0.2);
+            border: 2px solid rgba(249, 115, 22, 0.5);
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-
-<!-- Firebase Imports -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, setDoc, collection, query, where, getDocs, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Global variables (Mandatory for Canvas Environment)
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-    let app, db, auth, userId = null;
-    let currentSchedules = {}; // Store fetched schedules
-    let unsubscribe = null; // To manage the real-time listener
-    let hasListenerStarted = false; // 用於防止重複啟動監聽器和錯誤處理。
-
-    // Engineer names and IDs based on user's request
-    const ENGINEER_NAMES = [
-        { id: 'E01', name: '王一' }, { id: 'E02', name: '王二' }, { id: 'E03', name: '王三' },
-        { id: 'E04', name: '王四' }, { id: 'E05', name: '王五' }, { id: 'E06', name: '王六' },
-        { id: 'E07', name: '王七' }, { id: 'E08', name: '王八' }, { id: 'E09', name: '王九' },
-        { id: 'E10', name: '王十' }, { id: 'E11', name: '王十一' }, { id: 'E12', name: '王十二' },
-        { id: 'E13', name: '王十三' }
-    ];
-
-    // Special Task Column Names
-    const SPECIAL_TASK_COLUMNS = ['假派覆機', '機房端維修', '緊急維修', '裝機待協調'];
-
-
-    // State for the UI
-    const state = {
-        selectedArea: '台中區',
-        selectedDate: dayjs().format('YYYY-MM-DD'),
-        highlightedRecommendation: null, // { engineerId, startSlot, durationSlots, area }
-        isAuthReady: false,
-        lastConfirmedRecommendation: null, // Store data for SMS modal
-        allRecommendations: [] // Store all recommendations
-    };
-
-    // --- Utility Functions ---
-
-    // Time array for 9:00 to 21:30 (26 total labels)
-    const TIME_LABELS = Array.from({ length: 26 }, (_, i) => {
-        const totalMinutes = 9 * 60 + i * 30;
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    });
-
-    // Helper to convert time string (e.g., "09:00") to slot index (0-25)
-    const timeToSlot = (time) => {
-        const [h, m] = time.split(':').map(Number);
-        return ((h - 9) * 2) + (m / 30);
-    };
-    
-    // Helper to format the current date as YYYY/MM/DD (週X) for display
-    const getDefaultDateDisplay = (dateObj) => {
-        const d = dayjs(dateObj);
-        const weekday = ['日', '一', '二', '三', '四', '五', '六'][d.day()];
-        return `${d.format('YYYY/MM/DD')} (週${weekday})`;
-    };
-
-    // Task Type Definitions (Colors and Duration in half-hour slots)
-    const TASK_TYPES = {
-        '用戶端工程': { color: 'bg-task-project', duration: 2, label: '工程 (1H)' },
-        '用戶端維修': { color: 'bg-task-repair', duration: 4, label: '維修 (2H)' },
-        '機房端維修': { color: 'bg-gray-600', duration: 1, label: '機房 (0.5H)' },
-        '行動管家安裝': { color: 'bg-purple-600', duration: 8, label: '管家 (4H)' },
-        '社區上線測通': { color: 'bg-indigo-600', duration: 8, label: '測通 (4H)' },
-        '裝機': { color: 'bg-task-install', duration: 3, label: '裝機 (1.5H)' },
-        '裝機加水平': { color: 'bg-green-700', duration: 4, label: '裝機+平 (2H)' },
-    };
-
-    // Shift Logic: Returns true if the slot (0-25) is an off-hour or lunch break
-    const isSlotUnavailable = (slotIndex, shift) => {
-        // Time slots: 9:00=0, 21:30=25
-        const startTime = timeToSlot('09:00');
-        const endTime = timeToSlot('21:30');
-
-        if (shift === 'morning') {
-            // Off-hours: After 17:30 (Slot 17 onwards)
-            if (slotIndex >= timeToSlot('17:30') || slotIndex < startTime) return true;
-            // Lunch: 13:00 (Slot 8)
-            if (slotIndex === timeToSlot('13:00')) return true;
-        } else if (shift === 'afternoon') {
-            // Off-hours: Before 13:00 (Slot 0 to 7)
-            if (slotIndex < timeToSlot('13:00') || slotIndex > endTime) return true;
-            // Lunch: 17:00 (Slot 16)
-            if (slotIndex === timeToSlot('17:00')) return true;
-        }
-        return false;
-    };
-
-
-    // --- Firestore Functions ---
-
-    const getSchedulePath = () => {
-        return `artifacts/${appId}/public/data/engineer_schedules`;
-    };
-
-    // NEW: 顯示載入狀態
-    const showLoadingState = () => {
-        const gridContainer = document.getElementById('vertical-capacity-grid-body');
-        // 使用 Tailwind 樣式和 SVG  spinner 顯示載入中
-        gridContainer.innerHTML = `
-            <div class="text-center p-8 text-gray-500 col-span-full flex items-center justify-center space-x-2" style="grid-column: 1 / -1;">
-                <svg class="animate-spin h-5 w-5 text-primary-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>載入排程數據中...</span>
-            </div>
-        `;
-    };
-
-    const setupRealtimeListener = (area, date) => {
-        if (!db || !state.isAuthReady) {
-            console.warn("Firestore: DB not ready or Auth not complete. Listener skipped.");
-            // Render the grid with potentially stale data or loading message if not authenticated
-            renderEnergyTable(currentSchedules); 
-            return;
-        }
-
-        // 1. 立即顯示載入狀態，覆蓋舊的或靜態的內容
-        showLoadingState(); 
-
-        // Clear previous listener if exists
-        if (unsubscribe) {
-            unsubscribe();
-            console.log("Firestore: Previous listener unsubscribed.");
-        }
-
-        const docId = `${area}_${date}`;
-        const scheduleRef = doc(db, getSchedulePath(), docId);
-
-        console.log(`Firestore: Listening to schedule document: ${docId}`);
-
-        unsubscribe = onSnapshot(scheduleRef, (docSnap) => {
-            if (docSnap.exists()) {
-                currentSchedules = docSnap.data();
-                console.log("Firestore: Data received and updated.");
-            } else {
-                console.log("Firestore: No schedule found, initializing mock data.");
-                currentSchedules = generateMockSchedule(area, date);
-                // Attempt to save mock data (only if authenticated)
-                if (userId) {
-                    setDoc(scheduleRef, currentSchedules, { merge: true })
-                        .then(() => console.log('Firestore: Mock schedule initialized and saved.'))
-                        .catch(err => console.error('Firestore: Error setting mock data:', err));
-                }
-            }
-            renderEnergyTable(currentSchedules);
-        }, (error) => {
-            console.error("Firestore: Real-time listener error:", error);
-            document.getElementById('energy-table-error').textContent = `錯誤: Firestore 數據讀取失敗 (${error.message})。`;
-            document.getElementById('energy-table-error').classList.remove('hidden');
-            renderEnergyTable({ error: true });
-        });
-    };
-
-    // Mock Schedule Generator (kept for consistency)
-    const generateMockSchedule = (area, date) => {
-        // This function is crucial for simulating schedule fetching for future dates in the recommendation logic
-        const engineers = {};
-        ENGINEER_NAMES.forEach((eng, i) => {
-            const id = eng.id;
-            // Shift is determined by index + day of the week for variability
-            const dayOfWeek = dayjs(date).day(); // 0 (Sun) to 6 (Sat)
-            const shiftPattern = (i + dayOfWeek) % 2; 
-            const shift = shiftPattern === 0 ? 'morning' : 'afternoon';
-
-            const mockTasks = [];
-            // Simple logic to add some tasks based on the day and engineer
-            if (dayjs(date).date() % (i + 1) === 0) {
-                mockTasks.push({ taskType: '用戶端維修', startSlot: 10, durationSlots: 4, location: '北屯', jobId: `J${i}A` }); 
-            }
-            if (dayjs(date).date() % (i + 2) === 0) {
-                 mockTasks.push({ taskType: '裝機', startSlot: 16, durationSlots: 3, location: '西屯', jobId: `J${i}B` }); 
-            }
-
-            engineers[id] = { name: eng.name, shift, schedule: mockTasks };
-        });
-
-        return {
-            area,
-            date,
-            engineers,
-            specialTasks: {
-                '裝機待協調': [{ taskType: '裝機', startSlot: 5, durationSlots: 3, location: '豐原', jobId: 'P001' }],
-                '緊急維修': [{ taskType: '機房端維修', startSlot: 15, durationSlots: 1, location: '機房A', jobId: 'P002' }],
-                '機房端維修': [{ taskType: '機房端維修', startSlot: 2, durationSlots: 1, location: '機房B', jobId: 'P003' }],
-                '假派覆機': [{ taskType: '用戶端維修', startSlot: 18, durationSlots: 2, location: '西屯', jobId: 'P004' }],
-            }
-        };
-    };
-
-    // --- Event Handlers (FIXED: Added showLoadingState) ---
-
-    const handleAreaChange = (event) => {
-        state.selectedArea = event.target.value;
-        document.getElementById('current-area').textContent = state.selectedArea;
-        // Reset highlight when area changes, as the schedule is new
-        state.highlightedRecommendation = null;
-        showLoadingState(); // <--- NEW: 顯示載入狀態
-        setupRealtimeListener(state.selectedArea, state.selectedDate);
-    };
-
-    const handleDateChange = (event) => {
-        state.selectedDate = event.target.value;
-        document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(state.selectedDate);
-        // Reset highlight when date changes, as the schedule is new
-        state.highlightedRecommendation = null;
-        showLoadingState(); // <--- NEW: 顯示載入狀態
-        setupRealtimeListener(state.selectedArea, state.selectedDate);
-    };
-
-
-    // --- UI Rendering ---
-
-    const renderEnergyTable = (schedules) => {
-        const gridContainer = document.getElementById('vertical-capacity-grid-body');
-        const errorContainer = document.getElementById('energy-table-error');
-        // 渲染之前先清空內容 (這會清除 loading spinner)
-        gridContainer.innerHTML = ''; 
-
-        if (schedules.error) {
-            errorContainer.textContent = '載入排程數據錯誤，請檢查連線或登入狀態。';
-            errorContainer.classList.remove('hidden');
-            // 由於已經清空 gridContainer.innerHTML，這裡可以不寫內容或顯示一個靜態錯誤提示
-            gridContainer.innerHTML = `<div class="text-center p-8 text-red-500 col-span-full" style="grid-column: 1 / -1;">數據載入失敗，請查看上方錯誤訊息。</div>`;
-            return;
-        } else {
-            errorContainer.classList.add('hidden');
-        }
-
-        // 1. Render Headers
-        const headers = ['時間'];
-        SPECIAL_TASK_COLUMNS.forEach(name => headers.push(name));
-        ENGINEER_NAMES.forEach(eng => headers.push(eng.name));
-
-        const headerRowHtml = headers.map((title, index) => {
-            let classes = 'grid-header';
-            if (index === 0) classes += ' time-label-cell sticky left-0 z-20';
-            if (index > 0 && index <= 4) classes += ' bg-yellow-200'; // Special tasks header
-            
-            let nameContent = title;
-            if (index > 4) { // Engineer headers (Index 5 onwards)
-                const engineerIndex = index - 5;
-                if (engineerIndex < ENGINEER_NAMES.length && schedules.engineers) {
-                    const engineer = schedules.engineers[ENGINEER_NAMES[engineerIndex].id]; 
-                    const shift = engineer ? engineer.shift === 'morning' ? '早' : '午' : '?';
-                    nameContent = `${title} (${shift})`;
-                } else {
-                    nameContent = `${title} (?)`;
-                }
-            }
-
-            return `<div class="${classes}">${nameContent}</div>`;
-        }).join('');
-
-        // 2. Render Time Slots (26 rows)
-        const totalRows = TIME_LABELS.length;
-        const bodyRowsHtml = [];
-
-        for (let i = 0; i < totalRows; i++) {
-            // First Cell: Time Label
-            bodyRowsHtml.push(`<div class="grid-cell time-label-cell sticky left-0 z-10">${TIME_LABELS[i]}</div>`);
-
-            // Next 4 Cells: Special Tasks
-            SPECIAL_TASK_COLUMNS.forEach(taskName => {
-                bodyRowsHtml.push(renderSpecialTaskCell(i, taskName, schedules.specialTasks?.[taskName] || []));
-            });
-
-            // Last 13 Cells: Engineers
-            ENGINEER_NAMES.forEach(eng => {
-                bodyRowsHtml.push(renderEngineerCell(i, eng.id, schedules.engineers?.[eng.id]));
-            });
-        }
-        
-        // Combine header and body
-        gridContainer.innerHTML = headerRowHtml + bodyRowsHtml.join('');
-
-        // Update current date display
-        document.getElementById('current-date-display').textContent = getDefaultDateDisplay(state.selectedDate);
-
-        // Re-attach event listeners for recommendation highligh (Note: handleSlotClick is not defined, keeping it for original structure)
-        // document.querySelectorAll('.task-cell').forEach(slot => {
-        //     slot.addEventListener('click', handleSlotClick); 
-        // });
-    };
-    
-    // Renders one time slot cell for an Engineer (kept for consistency)
-    const renderEngineerCell = (slotIndex, id, engineer) => {
-        if (!engineer) return `<div class="grid-cell bg-gray-100" title="數據遺失">?</div>`;
-
-        const { shift, schedule } = engineer;
-        let classes = 'grid-cell task-cell';
-        let content = '';
-        let title = '';
-
-        // Check if the current cell should be highlighted
-        const isRec = state.highlightedRecommendation && state.highlightedRecommendation.engineerId === id &&
-                      slotIndex >= state.highlightedRecommendation.startSlot &&
-                      slotIndex < state.highlightedRecommendation.startSlot + state.highlightedRecommendation.durationSlots &&
-                      dayjs(state.highlightedRecommendation.date).format('YYYY-MM-DD') === state.selectedDate;
-
-
-        if (isRec) {
-            // Highlighting the recommendation
-            classes += ' bg-secondary-yellow z-10 shadow-lg border-2 border-yellow-700';
-            content = `<span class="truncate text-gray-900 font-bold">約工 (${state.highlightedRecommendation.district})</span>`;
-            title = `推薦約工：${state.highlightedRecommendation.district} (${TIME_LABELS[state.highlightedRecommendation.startSlot]} - ${TIME_LABELS[state.highlightedRecommendation.startSlot + state.highlightedRecommendation.durationSlots]})`;
-        } else {
-            const isOff = isSlotUnavailable(slotIndex, shift);
-            const occupiedTask = schedule.find(task => 
-                slotIndex >= task.startSlot && slotIndex < task.startSlot + task.durationSlots
-            );
-
-            if (isOff) {
-                classes += ' bg-off-hour text-white/50 cursor-not-allowed';
-                content = slotIndex === timeToSlot('13:00') || slotIndex === timeToSlot('17:00') ? `<span class="text-[8px] text-white/80">休息</span>` : '';
-                title = '非排班時段/休息';
-            } else if (occupiedTask) {
-                const typeDef = TASK_TYPES[occupiedTask.taskType];
-                classes += ` ${typeDef.color} text-white`;
-                
-                if (slotIndex === occupiedTask.startSlot) {
-                    content = `<span class="text-[10px] font-semibold truncate">${typeDef.label} - ${occupiedTask.location}</span>`;
-                } else if (slotIndex > occupiedTask.startSlot) {
-                    classes += ' opacity-80';
-                }
-
-                title = `${occupiedTask.taskType} | ${occupiedTask.location} | ${TIME_LABELS[occupiedTask.startSlot]} - ${TIME_LABELS[occupiedTask.startSlot + occupiedTask.durationSlots]}`;
-            } else {
-                classes += ' bg-white hover:bg-gray-100';
-                title = `空閒時段: ${TIME_LABELS[slotIndex]}`;
-            }
-        }
-
-
-        return `<div class="${classes}" title="${title}" data-engineer-id="${id}" data-slot-index="${slotIndex}">${content}</div>`;
-    };
-
-    // Renders one time slot cell for a Special Task Column (kept for consistency)
-    const renderSpecialTaskCell = (slotIndex, name, tasks) => {
-        let classes = 'grid-cell task-cell bg-gray-100';
-        let content = '';
-        let title = '';
-        
-        const occupiedTask = tasks.find(task => 
-            slotIndex >= task.startSlot && slotIndex < task.startSlot + task.durationSlots
-        );
-
-        if (occupiedTask) {
-            let taskColorClass = name === '裝機待協調' ? 'bg-blue-300' : name === '緊急維修' ? 'bg-red-500' : name === '機房端維修' ? 'bg-gray-600' : 'bg-orange-500';
-            
-            classes += ` ${taskColorClass} text-white`;
-
-            if (slotIndex === occupiedTask.startSlot) {
-                const typeDef = TASK_TYPES[occupiedTask.taskType];
-                content = `<span class="text-[10px] font-bold truncate">${typeDef.label} (${occupiedTask.location || ''})</span>`;
-            } else if (slotIndex > occupiedTask.startSlot) {
-                classes += ' opacity-80';
-            }
-            
-            title = `${name} | ${occupiedTask.taskType} | ${TIME_LABELS[occupiedTask.startSlot]} - ${TIME_LABELS[occupiedTask.startSlot + occupiedTask.durationSlots]}`;
-        } else {
-             classes += ' hover:bg-gray-200';
-             title = `空閒時段: ${TIME_LABELS[slotIndex]}`;
-        }
-
-        return `<div class="${classes}" title="${title}" data-task-type="${name}" data-slot-index="${slotIndex}">${content}</div>`;
-    };
-
-    // --- Recommendation Logic (kept for consistency) ---
-
-    // New helper to find N recommendations
-    const findRecommendations = (area, durationSlots, numToFind = 6) => {
-        const results = [];
-        const maxDaysToSearch = 7;
-        const targetDistrict = '北屯'; // Mocked district for context
-
-        for (let d = 0; d < maxDaysToSearch && results.length < numToFind * 2; d++) { // Search up to 7 days, grab more than needed
-            const searchDate = dayjs(state.selectedDate).add(d, 'day').format('YYYY-MM-DD');
-            const mockSchedule = generateMockSchedule(area, searchDate); // Mocking future schedule fetch
-            
-            const availableEngineers = ENGINEER_NAMES.map(eng => ({ 
-                ...eng,
-                ...mockSchedule.engineers[eng.id]
-            }));
-
-            for (const engineer of availableEngineers) {
-                let consecutiveFreeSlots = 0;
-                let currentStartSlot = -1;
-
-                for (let i = 0; i <= 26; i++) { // Include slot 26 for duration check at the end
-                    // Check conditions for current slot i
-                    const isOff = i < 26 && isSlotUnavailable(i, engineer.shift);
-                    const isOccupied = i < 26 && engineer.schedule.some(task => i >= task.startSlot && i < task.startSlot + task.durationSlots);
-
-                    if (i < 26 && !isOff && !isOccupied) {
-                        if (currentStartSlot === -1) {
-                            currentStartSlot = i;
-                        }
-                        consecutiveFreeSlots++;
-                        
-                        if (consecutiveFreeSlots >= durationSlots) {
-                            // Found a fit! Record the start time and continue the search
-                            results.push({
-                                date: searchDate,
-                                startSlot: currentStartSlot,
-                                durationSlots: durationSlots,
-                                engineerId: engineer.id,
-                                engineerName: engineer.name,
-                                area: area,
-                                district: targetDistrict // Mocked
-                            });
-                            // Advance the search window to find the next possible start slot right after the current fit
-                            currentStartSlot = currentStartSlot + durationSlots; 
-                            consecutiveFreeSlots = 0; 
-                        }
-                    } else {
-                        // Slot is unavailable/occupied, reset the tracking variables
-                        consecutiveFreeSlots = 0;
-                        currentStartSlot = -1;
-                    }
-
-                    if (results.length >= numToFind) {
-                        // Early exit if enough recommendations are found
-                        return results.slice(0, numToFind);
-                    }
-                }
-            }
-        }
-
-        return results.slice(0, numToFind);
-    }
-
-
-    const runRecommendation = () => {
-        const durationH = parseFloat(document.getElementById('rec-duration').value);
-        const durationSlots = durationH * 2; 
-        const area = state.selectedArea;
-
-        if (!durationSlots || durationSlots === 0) {
-            alertBox('請輸入期望約工時長！', 'bg-red-100 border-red-500 text-red-700');
-            return;
-        }
-
-        const recommendations = findRecommendations(area, durationSlots, 6); // Find up to 6
-
-        const primaryRec = recommendations[0];
-        const secondaryRecs = recommendations.slice(1);
-
-        if (primaryRec) {
-            const startDate = dayjs(primaryRec.date);
-            const startTimeStr = TIME_LABELS[primaryRec.startSlot];
-            const endTimeStr = TIME_LABELS[primaryRec.startSlot + primaryRec.durationSlots];
-
-            // 1. Update Primary UI
-            document.getElementById('rec-area-output').textContent = `${primaryRec.area} (${primaryRec.district})`;
-            document.getElementById('rec-date-output').textContent = `${startDate.format('MM/DD (ddd)')}`;
-            document.getElementById('rec-time-output').textContent = `${startTimeStr} - ${endTimeStr}`;
-            document.getElementById('rec-engineer-output').textContent = primaryRec.engineerName;
-
-            // Store data for the primary confirmation click and final booking
-            document.getElementById('highlight-rec-btn-0').dataset.recIndex = 0;
-            document.getElementById('final-confirm-btn').dataset.recIndex = 0;
-
-            // 2. Update Secondary UI
-            const secondaryContainer = document.getElementById('secondary-recommendations-container');
-            let secondaryHtml = '';
-            
-            if (secondaryRecs.length > 0) {
-                secondaryHtml = secondaryRecs.map((rec, index) => {
-                    const recIndex = index + 1;
-                    const recDate = dayjs(rec.date);
-                    const recTime = `${TIME_LABELS[rec.startSlot]} - ${TIME_LABELS[rec.startSlot + rec.durationSlots]}`;
-
-                    return `
-                        <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                            <div class="text-sm text-gray-700">
-                                <strong>${recDate.format('MM/DD (週ddd)')}</strong> ${recTime} (${rec.engineerName})
-                            </div>
-                            <button 
-                                class="highlight-rec-btn px-2 py-1 bg-yellow-300 text-yellow-900 rounded-md text-xs font-semibold hover:bg-yellow-400 transition"
-                                data-rec-index="${recIndex}"
-                                >
-                                高亮顯示參考
-                            </button>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Premium Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between h-auto md:h-20 py-4 md:py-0 items-center gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-tr from-orange-500 to-amber-500 text-white p-2.5 rounded-2xl flex items-center justify-center shadow-md">
+                        <i data-lucide="contact-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-bold text-slate-900 tracking-tight">智生活客資 360 °</h1>
+                            <span class="bg-orange-100 text-orange-700 text-xs px-2.5 py-0.5 rounded-full font-extrabold border border-orange-200">AI 銷售儀表板</span>
                         </div>
-                    `;
-                }).join('');
-                secondaryContainer.innerHTML = secondaryHtml;
-                document.getElementById('secondary-section').classList.remove('hidden');
+                        <p class="text-xs text-slate-500 mt-0.5">精準匹配：今網寬頻、雙網、家電清洗、影視服務、定期清潔</p>
+                    </div>
+                </div>
                 
-                // Re-attach listeners for the new buttons
-                document.querySelectorAll('.highlight-rec-btn').forEach(btn => {
-                    btn.removeEventListener('click', confirmRecommendation); // Ensure no duplicate listeners
-                    btn.addEventListener('click', confirmRecommendation);
-                });
-            } else {
-                 secondaryContainer.innerHTML = `<div class="text-sm text-gray-500">未找到其他合適的順位建議。</div>`;
-                 document.getElementById('secondary-section').classList.remove('hidden'); // Keep section visible but show no results
-            }
-
-
-            // 3. Store ALL recommendations in state for easy lookup later
-            state.allRecommendations = recommendations; 
-
-            document.getElementById('rec-output-container').classList.remove('hidden');
-        } else {
-            document.getElementById('rec-output-container').classList.add('hidden');
-            document.getElementById('secondary-section').classList.add('hidden');
-            alertBox('未找到合適的約工時段，請調整條件。', 'bg-red-100 border-red-500 text-red-700'); 
-        }
-    };
-
-
-    const confirmRecommendation = (event) => {
-        const btn = event.currentTarget;
-        const recIndex = parseInt(btn.dataset.recIndex);
-        const rec = state.allRecommendations[recIndex];
-
-        if (!rec) return;
-
-        // 1. Update UI state for highligh
-        state.highlightedRecommendation = rec;
-
-        // 2. Change the area/date selectors and trigger re-render
-        const targetDate = rec.date;
-        const targetArea = rec.area;
-
-        // 確保選擇器與推薦結果一致
-        let needRelisten = false;
-        if (state.selectedArea !== targetArea) {
-            document.getElementById('area-select').value = targetArea;
-            state.selectedArea = targetArea;
-            needRelisten = true;
-        }
-        if (state.selectedDate !== targetDate) {
-            document.getElementById('date-select').value = targetDate;
-            state.selectedDate = targetDate;
-            document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(state.selectedDate);
-            needRelisten = true;
-        }
-        document.getElementById('current-area').textContent = state.selectedArea;
-        
-        // Update the final confirmation button to reflect the currently highlighted choice
-        document.getElementById('final-confirm-btn').dataset.recIndex = recIndex;
-
-        // 3. 顯示載入狀態並重新監聽/渲染，以顯示高亮
-        if (needRelisten) {
-             showLoadingState(); // <--- NEW: 在開始新的異步載入前顯示載入中
-             setupRealtimeListener(state.selectedArea, state.selectedDate);
-        } else {
-             // 如果日期和區域都沒變，只需要重新渲染當前數據來顯示高亮
-             renderEnergyTable(currentSchedules); 
-        }
-
-
-        // Scroll to the row where the recommendation starts (optional but nice UX)
-        const targetElement = document.querySelector(`.grid-cell[data-engineer-id="${rec.engineerId}"][data-slot-index="${rec.startSlot}"]`);
-        if (targetElement) {
-             const scrollContainer = document.getElementById('energy-table-scroll-area');
-             const targetY = targetElement.offsetTop - (scrollContainer.offsetHeight / 2) + (targetElement.offsetHeight / 2);
-             scrollContainer.scrollTo({ top: targetY, behavior: 'smooth' });
-        }
-
-
-        // Display confirmation message near the table or recommendation output
-        const messageBox = document.getElementById('highlight-message');
-        messageBox.textContent = `已跳轉至 ${targetArea} ${dayjs(targetDate).format('MM/DD')}，請確認工程師 ${rec.engineerName} 的亮黃色推薦時段。`;
-        messageBox.classList.remove('hidden');
-        setTimeout(() => messageBox.classList.add('hidden'), 5000);
-    };
-
-    // --- New Feature: SMS Interface (kept for consistency) ---
-
-    const showSmsModal = (event) => {
-        const btn = event.currentTarget;
-        const recIndex = parseInt(btn.dataset.recIndex);
-        const rec = state.allRecommendations[recIndex];
-
-        if (!rec) {
-            alertBox('請先執行推薦並點擊高亮顯示參考！', 'bg-red-100 border-red-500 text-red-700');
-            return;
-        }
-
-        state.lastConfirmedRecommendation = rec;
-
-        const engineer = rec.engineerName;
-        const customerName = '李先生'; // Mock Customer Name
-        const address = `${rec.area}${rec.district}區文心路一段99號`; // Mock Address
-        const date = dayjs(rec.date).format('MM/DD (週ddd)');
-        const time = `${TIME_LABELS[rec.startSlot]} - ${TIME_LABELS[rec.startSlot + rec.durationSlots]}`;
-        const serviceType = '裝機加水平'; // Mock Service Type
-
-        // Generate mock SMS content
-        const defaultSms = 
-            `【今網】親愛的${customerName}，您預約的${serviceType}已確認，` + 
-            `派工工程師：${engineer}，預約日期：${date}，時間區間：${time}，` + 
-            `地址：${address}。` +
-            `如有變動請電洽。`;
-
-        // Populate modal fields
-        document.getElementById('sms-recipient').value = customerName;
-        document.getElementById('sms-engineer').textContent = engineer;
-        document.getElementById('sms-details').textContent = `${date} ${time} | ${serviceType}`;
-        document.getElementById('sms-content-textarea').value = defaultSms;
-
-        // Show modal
-        document.getElementById('appointment-sms-modal').style.display = 'flex';
-    };
-
-    const closeSmsModal = () => {
-        document.getElementById('appointment-sms-modal').style.display = 'none';
-    };
-    
-    const sendSms = () => {
-        const content = document.getElementById('sms-content-textarea').value;
-        // Mock sending action
-        console.log("模擬發送簡訊內容:", content);
-        // Use a non-alert message box for feedback
-        alertBox('簡訊已模擬送出！', 'bg-green-100 border-green-500 text-green-700');
-        closeSmsModal();
-    };
-
-    // Simple Alert Box replacement (non-alert() version)
-    const alertBox = (message, classes) => {
-        const box = document.getElementById('global-message-box');
-        box.textContent = message;
-        box.className = `absolute top-4 right-4 p-3 rounded-md shadow-md text-sm font-medium z-40 border ${classes}`;
-        box.classList.remove('hidden');
-        setTimeout(() => box.classList.add('hidden'), 5000);
-    };
-
-
-    // --- Initialization (FIXED Firebase Authentication Logic & Loading State) ---
-
-    const initFirebase = async () => {
-        const errorContainer = document.getElementById('energy-table-error');
-        errorContainer.classList.add('hidden'); 
-
-        // 1. 初始顯示載入狀態
-        showLoadingState(); 
-
-        // Set initial display date
-        document.getElementById('rec-start-date-display').value = getDefaultDateDisplay(state.selectedDate);
-        document.getElementById('current-area').textContent = state.selectedArea;
-
-
-        if (Object.keys(firebaseConfig).length === 0) {
-            console.error("FATAL: Firebase config is missing. Cannot proceed with data persistence.");
-            errorContainer.textContent = "錯誤: 找不到 Firebase 配置資訊 (__firebase_config 為空)。";
-            errorContainer.classList.remove('hidden');
-            renderEnergyTable(generateMockSchedule(state.selectedArea, state.selectedDate));
-            return;
-        }
-        
-        try {
-            setLogLevel('Debug');
-            console.log("1. Starting Firebase initialization...");
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            console.log("2. Firebase services initialized (App, DB, Auth).");
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    state.isAuthReady = true;
-                    console.log("4. Authentication SUCCESS (onAuthStateChanged fired). User ID:", userId);
-
-                    // 僅在首次成功登入時才啟動監聽器
-                    if (!hasListenerStarted) {
-                        console.log("5. Starting real-time schedule listener...");
-                        setupRealtimeListener(state.selectedArea, state.selectedDate);
-                        hasListenerStarted = true; // 設定旗標，防止未來重複執行
-                    }
-
-                } else {
-                    state.isAuthReady = false;
-                    // 僅在尚未成功啟動監聽器時，執行錯誤處理/回退邏輯
-                    if (!hasListenerStarted) {
-                        console.error("4. Authentication FAILED (onAuthStateChanged fired). No user signed in.");
-                        document.getElementById('energy-table-error').textContent = `錯誤: 無法登入 Firebase 服務。數據將無法即時載入，顯示為模擬數據。`;
-                        document.getElementById('energy-table-error').classList.remove('hidden');
-                        // Fallback to displaying mock data if auth fails, but warn user
-                        renderEnergyTable(generateMockSchedule(state.selectedArea, state.selectedDate));
-                    }
-                }
-            });
-            
-            let signInAttempted = false;
-
-            if (initialAuthToken) {
-                try {
-                    console.log("3a. Attempting sign-in with custom token. Token status: PRESENT.");
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("3a.1. signInWithCustomToken promise resolved. Awaiting onAuthStateChanged...");
-                    signInAttempted = true;
-                } catch (customTokenError) {
-                    console.warn(`3b. Custom Token Sign-in FAILED (${customTokenError.code || customTokenError.message}). Falling back to anonymous sign-in.`);
-                }
-            }
-
-            if (!signInAttempted) {
-                console.log("3c. Attempting anonymous sign-in.");
-                await signInAnonymously(auth);
-                console.log("3c.1. signInAnonymously promise resolved. Awaiting onAuthStateChanged...");
-            }
-
-        } catch (error) {
-            console.error("FATAL Firebase Initialization or Final Sign-in Attempt Error:", error.code, error.message);
-            document.getElementById('energy-table-error').textContent = `致命錯誤: Firebase 服務初始化或最終登入嘗試失敗 (${error.code || error.message})。將顯示模擬數據。`;
-            document.getElementById('energy-table-error').classList.remove('hidden');
-            renderEnergyTable(generateMockSchedule(state.selectedArea, state.selectedDate)); 
-        }
-    };
-
-    window.onload = () => {
-        // Initial setup for the date picker
-        document.getElementById('date-select').value = state.selectedDate;
-        document.getElementById('current-area').textContent = state.selectedArea;
-        
-        // --- Event Listeners (FIXED) ---
-        document.getElementById('area-select').addEventListener('change', handleAreaChange);
-        document.getElementById('date-select').addEventListener('change', handleDateChange);
-        document.getElementById('run-rec-btn').addEventListener('click', runRecommendation);
-        document.getElementById('highlight-rec-btn-0').addEventListener('click', confirmRecommendation); // Primary rec button
-        document.getElementById('final-confirm-btn').addEventListener('click', showSmsModal); // Final booking button
-        document.getElementById('sms-modal-close').addEventListener('click', closeSmsModal);
-        document.getElementById('sms-send-btn').addEventListener('click', sendSms);
-        
-        // Populate duration selector
-        const durationSelect = document.getElementById('rec-duration');
-        [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4].forEach(h => {
-            const option = document.createElement('option');
-            option.value = h;
-            option.textContent = `${h}H`;
-            durationSelect.appendChild(option);
-        });
-
-        initFirebase();
-    };
-
-    window.state = state;
-</script>
-
-<!-- Main Application Wrapper -->
-<div id="app" class="min-h-screen flex flex-col">
-
-    <!-- Header / Top Control Area -->
-    <header class="bg-primary-blue shadow-lg text-white p-4 sticky top-0 z-30">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold">今網工程師排程與約工推薦系統 (垂直檢視)</h1>
-            <div class="flex space-x-4 items-center">
-                <!-- 區域選擇 -->
-                <label for="area-select" class="text-sm font-medium">選擇區域:</label>
-                <select id="area-select" class="rounded-lg p-2 text-primary-blue border border-gray-300 shadow-sm">
-                    <option value="台北區">台北區</option>
-                    <option value="汐止區">汐止區</option>
-                    <option value="桃園區">桃園區</option>
-                    <option value="新竹區">新竹區</option>
-                    <option value="台中區" selected>台中區</option>
-                    <option value="台南區">台南區</option>
-                    <option value="高雄區">高雄區</option>
-                </select>
-
-                <!-- 日期選擇 -->
-                <label for="date-select" class="text-sm font-medium">選擇日期:</label>
-                <input type="date" id="date-select" class="rounded-lg p-2 text-primary-blue border border-gray-300 shadow-sm">
-
-                <!-- 時段篩選 (簡化為視覺提示) -->
-                <button class="px-4 py-2 bg-blue-700 hover:bg-blue-600 rounded-lg text-sm transition duration-150">切換早/午班總覽</button>
+                <!-- Demo Customer Switcher -->
+                <div class="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner">
+                    <span class="text-xs text-slate-500 px-3 font-semibold flex items-center gap-1">
+                        <i data-lucide="users" class="w-3.5 h-3.5"></i> 切換客資 360 情境：
+                    </span>
+                    <button onclick="switchCustomer('cust_1')" id="btn_cust_1" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-orange-600 shadow-sm border border-slate-200">
+                        林大明 (生活應用型 - 清洗滿一年)
+                    </button>
+                    <button onclick="switchCustomer('cust_2')" id="btn_cust_2" class="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900">
+                        陳美玲 (價格敏感型 - 清潔即將結束)
+                    </button>
+                    <button onclick="switchCustomer('cust_3')" id="btn_cust_3" class="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900">
+                        張小豪 (冷感防備型 - 清洗滿一年)
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Area: 70/30 Split -->
-    <div id="main-content" class="flex flex-1 overflow-hidden">
-        
-        <!-- Left Pane: Engineer Capacity Table (70%) -->
-        <main class="w-[70%] min-w-[700px] bg-white p-4 relative flex flex-col">
-            <h2 class="text-xl font-semibold mb-3 text-gray-700">
-                <span id="current-area">台中區</span> 排程總覽 - <span id="current-date-display"></span>
-            </h2>
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-            <!-- Message boxes -->
-            <div id="highlight-message" class="hidden absolute top-4 right-4 bg-yellow-100 border-l-4 border-secondary-yellow text-yellow-700 p-3 rounded-md shadow-md text-sm font-medium z-20"></div>
-            <div id="global-message-box" class="hidden absolute top-4 right-4 p-3 rounded-md shadow-md text-sm font-medium z-40 border"></div>
-
-            <!-- Error Container for Firebase/Firestore issues -->
-            <div id="energy-table-error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md font-medium" role="alert">
-                載入排程數據錯誤。
-            </div>
-            
-            <!-- Energy Table Container (Scrollable) -->
-            <div id="energy-table-scroll-area" class="overflow-auto flex-1 shadow-lg">
-                <div id="vertical-capacity-grid-body" class="vertical-capacity-grid">
-                    <!-- Grid content will be injected by JavaScript (either loading spinner or grid data) -->
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Right Pane: Smart Recommendation Engine (30%) -->
-        <aside class="w-[30%] min-w-[300px] bg-white border-l border-gray-200 p-6 shadow-2xl overflow-y-auto">
-            <h2 class="text-xl font-semibold mb-6 text-primary-blue border-b pb-2">智慧約工推薦引擎</h2>
-            
-            <!-- 4.1 輸入條件區 (Inputs) -->
-            <div class="space-y-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <h3 class="font-bold text-gray-700">約工需求輸入</h3>
-                
-                <div>
-                    <label for="rec-start-date-display" class="block text-sm font-medium text-gray-700 mb-1">起始日期</label>
-                    <input 
-                        type="text" 
-                        id="rec-start-date-display" 
-                        readonly 
-                        class="w-full rounded-lg border-gray-300 p-2 shadow-sm bg-gray-100 font-semibold text-gray-700 cursor-default"
-                        value="載入中..."
-                    >
-                </div>
-
-                <div>
-                    <label for="rec-duration" class="block text-sm font-medium text-gray-700 mb-1">約工時長 (0.5H ~ 4H)</label>
-                    <select id="rec-duration" class="w-full rounded-lg border-gray-300 p-2 shadow-sm focus:border-primary-blue focus:ring focus:ring-primary-blue/30">
-                        <!-- Options populated by JS -->
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">期望時段</label>
-                    <div class="flex space-x-3">
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="rec-shift" value="平日" checked class="form-radio text-primary-blue">
-                            <span class="ml-2 text-sm">平日</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="rec-shift" value="假日" class="form-radio text-primary-blue">
-                            <span class="ml-2 text-sm">假日</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" name="rec-shift" value="不限" class="form-radio text-primary-blue">
-                            <span class="ml-2 text-sm">不限</span>
-                        </label>
+        <!-- NotebookLM Sales Action Card (TOP MOST PROMINENT AREA) -->
+        <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 rounded-3xl p-0.5 shadow-lg overflow-hidden">
+            <div class="bg-white rounded-[22px] p-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-5">
+                    <div class="space-y-1.5">
+                        <div class="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 text-xs px-3 py-1 rounded-full font-bold">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 fill-orange-100"></i> AI 實時偵測 · 黃金銷售契機
+                        </div>
+                        <h2 class="text-2xl font-black text-slate-950 flex items-center gap-2" id="radar_target_prod">
+                            家電清洗服務
+                        </h2>
+                        <p class="text-sm text-slate-600" id="radar_opportunity_reason">
+                            上一次家電清洗已滿一年，為提升出風品質與健康，是絕佳的回購切入點。
+                        </p>
+                    </div>
+                    <div class="flex gap-3 shrink-0">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
+                            <span class="text-[10px] text-slate-400 block font-bold">預估轉化率</span>
+                            <span class="text-xl font-black text-orange-600" id="radar_conv_rate">88%</span>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
+                            <span class="text-[10px] text-slate-400 block font-bold">最佳撥打時間</span>
+                            <span class="text-xs font-bold text-slate-700 block mt-1" id="radar_best_time">19:30 - 21:00</span>
+                        </div>
                     </div>
                 </div>
 
-                <button id="run-rec-btn" class="w-full bg-primary-blue text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition duration-150 shadow-md">
-                    執行最佳約工推薦
-                </button>
-            </div>
-
-            <!-- 4.2 推薦結果顯示區 (Output) -->
-            <div id="rec-output-container" class="hidden space-y-6">
-                
-                <!-- 主要推薦結果 -->
-                <div class="p-4 rounded-xl bg-yellow-50 border-2 border-secondary-yellow shadow-lg">
-                    <h3 class="font-bold text-lg text-yellow-800 mb-3">最佳約工建議 (順位 1)</h3>
-                    
-                    <div class="grid grid-cols-2 gap-2 text-sm mb-4">
-                        <div class="font-medium text-gray-600">區域推薦:</div>
-                        <div id="rec-area-output" class="font-bold text-yellow-800"></div>
-                        
-                        <div class="font-medium text-gray-600">最快日期:</div>
-                        <div id="rec-date-output" class="font-bold text-yellow-800"></div>
-                        
-                        <div class="font-medium text-gray-600">建議時間:</div>
-                        <div id="rec-time-output" class="font-bold text-yellow-800 text-base"></div>
-
-                        <div class="font-medium text-gray-600">推薦工程師:</div>
-                        <div id="rec-engineer-output" class="font-bold text-yellow-800"></div>
+                <!-- Strategic Pitch Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
+                    <div class="lg:col-span-2 space-y-2">
+                        <span class="text-xs font-extrabold text-orange-600 uppercase tracking-wider flex items-center gap-1">
+                            <i data-lucide="message-square" class="w-4 h-4"></i> 培訓師推薦：實戰溝通開口話稿
+                        </span>
+                        <div class="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 text-sm text-slate-800 font-medium leading-relaxed shadow-inner" id="radar_communication_approach">
+                            「大明哥您好！我是智生活的服務專員。特別打來跟您分享，去年差不多這個時候，我們有幫您安排客廳冷氣清洗。技師當時有提到冷氣狀況良好，但因為冷氣使用一年後內部水氣容易悶著衍生黴菌，吹出來對呼吸道影響很大。我們最近剛好在推廣社區老客戶團購，幫您安排下週原班師傅回去清洗，順便幫您爭取大雙網門號折抵網路費如何？」
+                        </div>
                     </div>
-
-                    <button id="highlight-rec-btn-0" class="highlight-rec-btn w-full bg-secondary-yellow text-gray-900 p-2 rounded-lg font-bold hover:bg-yellow-400 transition duration-150 shadow-md text-sm">
-                        高亮顯示參考
-                    </button>
-                </div>
-                
-                <!-- 其他順位建議 -->
-                <div id="secondary-section" class="hidden mt-4">
-                    <h3 class="font-bold text-base text-gray-700 border-b pb-2 mb-2">[其他順位建議]</h3>
-                    <div id="secondary-recommendations-container" class="space-y-1">
-                        <!-- Secondary recommendations injected here -->
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/60 flex flex-col justify-between">
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-slate-400 block">心智圖核心銷售策略：</span>
+                            <div class="text-xs text-slate-700 font-medium space-y-1.5" id="radar_strategy_tags">
+                                <!-- Tags will be dynamically generated -->
+                            </div>
+                        </div>
+                        <button onclick="copySalesPitch()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs transition shadow-sm mt-3">
+                            <i data-lucide="copy" class="w-4 h-4"></i> 複製此黃金話稿
+                        </button>
                     </div>
                 </div>
-
-                <!-- 確定約工按鈕 -->
-                <button id="final-confirm-btn" data-rec-index="0" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition duration-150 shadow-xl mt-6">
-                    確定約工並發送通知
-                </button>
-
-            </div>
-
-        </aside>
-
-    </div>
-
-    <!-- Appointment SMS Modal Interface -->
-    <div id="appointment-sms-modal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center border-b pb-2 mb-4">
-                <h3 class="text-xl font-bold text-green-700">約工成功簡訊介面</h3>
-                <button id="sms-modal-close" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <div class="space-y-3">
-                <div class="flex justify-between text-sm">
-                    <label for="sms-recipient" class="font-medium text-gray-600">收件人 (客戶名):</label>
-                    <input type="text" id="sms-recipient" class="border border-gray-300 rounded-md p-1 w-1/2 text-right">
-                </div>
-                <div class="text-sm border-b pb-2">
-                    <p><span class="font-medium text-gray-600">派工工程師:</span> <span id="sms-engineer" class="font-semibold text-primary-blue"></span></p>
-                    <p><span class="font-medium text-gray-600">約工時段:</span> <span id="sms-details" class="font-semibold text-primary-blue"></span></p>
-                </div>
-
-                <label for="sms-content-textarea" class="block font-medium text-gray-700">簡訊內容編輯:</label>
-                <textarea id="sms-content-textarea" rows="6" class="w-full border-2 border-gray-300 rounded-lg p-3 text-sm focus:border-green-500 focus:ring-green-500"></textarea>
-
-                <button id="sms-send-btn" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition duration-150 shadow-md">
-                    模擬送出簡訊
-                </button>
             </div>
         </div>
+
+        <!-- 3-Column Grid for Core Categories: 1.客戶資料, 2.今網寬頻, 3.雙網方案 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Column 1: 客戶資料 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-4 h-4 text-orange-500"></i> 客戶基本資料
+                    </h3>
+                    
+                    <div class="flex items-center space-x-3 mb-5">
+                        <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-lg font-black" id="cust_avatar">
+                            林
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-lg font-bold text-slate-900" id="cust_name">林大明</h4>
+                                <span id="cust_gender" class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">男</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1" id="cust_address">美麗人生社區 · B棟 12樓</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs text-slate-600">
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">手機號碼</span>
+                            <span class="font-mono font-bold text-slate-900" id="cust_phone">0912-345-678</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">生日 (年月日)</span>
+                            <span class="font-bold text-slate-900" id="cust_birthday">1984-05-12</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">年齡</span>
+                            <span class="font-bold text-slate-900" id="cust_age">42 歲</span>
+                        </div>
+                        <div class="flex flex-col py-1.5 gap-1">
+                            <span class="font-medium text-slate-400">消費服務</span>
+                            <div class="flex flex-wrap gap-1 mt-1" id="cust_services">
+                                <!-- Dynamic consumption tags -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: 今網寬頻 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                        <i data-lucide="wifi" class="w-4 h-4 text-emerald-500"></i> 今網寬頻客戶資訊
+                    </h3>
+
+                    <div class="space-y-2.5 text-xs text-slate-600">
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">ISP 客戶編號</span>
+                            <span class="font-mono font-bold text-slate-900" id="isp_sn">BB-872193-Y</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">ISP 客戶類型 (用戶狀態)</span>
+                            <span class="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded" id="isp_type">正常戶 (續約名單)</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">首次裝機日 / 到期日</span>
+                            <span class="font-bold text-slate-900" id="isp_dates">2021-08-15 / 2026-08-15</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">今網使用年資</span>
+                            <span class="font-bold text-slate-900" id="isp_tenure">5 年</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">未處理完之客訴單</span>
+                            <span class="font-bold text-slate-900" id="isp_unresolved_complaints">0 件</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5">
+                            <span class="font-medium text-slate-400">客介客次數 (介紹人)</span>
+                            <span class="font-bold text-indigo-600" id="isp_referrals">2 次</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-150 text-[11px] mt-2">
+                    <span class="font-bold text-slate-500 block mb-1">客訴 / 關懷紀錄：</span>
+                    <p class="text-slate-700 leading-relaxed font-medium" id="isp_notes">
+                        2025/08 電銷回訪：網路極速順暢，反應夜間尖峰上網偶爾較慢，已提供頻寬優化建議。
+                    </p>
+                </div>
+            </div>
+
+            <!-- Column 3: 雙網方案 -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                        <i data-lucide="smartphone" class="w-4 h-4 text-indigo-500"></i> 雙網方案客戶資訊
+                    </h3>
+
+                    <div class="space-y-2.5 text-xs text-slate-600">
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">雙網方案狀態</span>
+                            <span class="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded" id="double_net_status">溝通中</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">雙網締結數</span>
+                            <span class="font-bold text-slate-900" id="double_net_count">0 組</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">雙網方案</span>
+                            <span class="font-bold text-slate-900" id="double_net_plan">今網大雙網-遠傳門號案</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">門號合約到期日</span>
+                            <span class="font-bold text-slate-900" id="double_net_expiry">2026-09-15 (六個月內到期)</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                            <span class="font-medium text-slate-400">客戶現有手機電信</span>
+                            <span class="font-bold text-slate-900" id="double_net_isp">中華電信</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1.5">
+                            <span class="font-medium text-slate-400">客戶目前門號資費</span>
+                            <span class="font-bold text-slate-900" id="double_net_price">799 元/月</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Upselling Products Matrix (STRICTLY FROM SPECIFIED FIELDS) -->
+        <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-md font-bold mb-1 border border-slate-200 inline-block">
+                        客資 360 ° 各商品明細
+                    </span>
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2 mt-1">
+                        各商品持有狀態與加購機會
+                    </h3>
+                    <p class="text-xs text-slate-500">限呈現表單內之商品：今網寬頻、雙網方案、家電清洗、影視服務、定期清潔</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 已締結 / 持有中</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 推薦加購 (高意願續訂)</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> 歷史無資料 / 未締結</span>
+                </div>
+            </div>
+
+            <!-- Product Cards Matrix Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4" id="products_container">
+                <!-- Dynamic cards matching 1. 今網寬頻 2. 雙網方案 3. 家電清洗 4. 影視服務 5. 定期清潔 -->
+            </div>
+        </div>
+
+        <!-- Section: AI User Persona & Interaction Tactics (From training sources) -->
+        <div class="bg-slate-900 rounded-3xl text-white p-6 md:p-8 shadow-xl relative overflow-hidden">
+            <!-- Decorative gradient blur -->
+            <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-orange-600/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -top-20 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex items-center space-x-3 mb-6 relative z-10">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-md">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold tracking-tight">AI 語音判定：客戶輪廓分析與溝通技巧</h3>
+                    <p class="text-xs text-slate-400">來源對應：《客戶輪廓對應策略（雙網腳本）- 精準判斷表》</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+                
+                <!-- Box 1: Customer Persona Summary -->
+                <div class="bg-white/5 rounded-2xl p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-2">秒判斷關鍵特徵</span>
+                        <div class="flex items-center gap-2 mb-3">
+                            <h4 class="text-lg font-bold text-white" id="persona_name">A03 生活應用型</h4>
+                            <span class="bg-orange-500/20 text-orange-400 text-xs px-2.5 py-0.5 rounded font-bold" id="persona_key_term">"問細節"</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed" id="persona_desc">
+                            核心在於確認具體使用場景。重點在於解決日常生活、家電運作及網路使用細節中的各項疑慮。
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-3 pt-4 border-t border-white/10 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">客戶最在乎：</span>
+                            <span class="font-bold text-slate-200 animate-pulse" id="persona_focus">服務品質、售後保固</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">最討厭什麼：</span>
+                            <span class="font-bold text-slate-200" id="persona_dislikes">空洞話術、沒有誠信</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box 2: Recommended Skills & Dialogues -->
+                <div class="bg-white/5 rounded-2xl p-5 border border-white/10 lg:col-span-2 space-y-4">
+                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">一擊必殺應對策略</span>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <h5 class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 業務溝通技巧 (一擊必殺)
+                            </h5>
+                            <p class="text-xs text-slate-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5 h-28 overflow-y-auto" id="persona_skills">
+                                將服務與規格優勢完全轉化為「日常生活場景」。例如主動與客戶說明「599方案雖然降速至12M，但日常看YouTube 1080P、導航和日常查資料都絕對順暢夠用。」
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-1.5">
+                            <h5 class="text-xs font-bold text-rose-400 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> 溝通絕對禁忌 (避免踩雷)
+                            </h5>
+                            <p class="text-xs text-slate-300 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5 h-28 overflow-y-auto" id="persona_taboos">
+                                避免使用「保證獨立頻寬」等技術名詞（為防範客訴暫不溝通）。切忌背稿敷衍，若客戶詢問細節，務必精準回答，絕不可含糊帶過。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/40 px-4 py-3 rounded-xl border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <span class="text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="check-square" class="w-4 h-4 text-orange-500"></i>
+                            本策略符合「銷售溝通八大項標準」，保障電銷締結力道。
+                        </span>
+                        <span class="text-slate-400 font-mono">今網大雙網 QA Team</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>© 2026 智生活 (Smart Life) 電銷與數據科學部 - 內部訓練專用</p>
+            <p class="mt-1">UI/UX 佈局：客戶基本資料與商品明細 360 度完美呈現</p>
+        </div>
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50 border border-slate-700">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+        <span class="text-xs font-medium" id="toast_msg">複製成功！</span>
     </div>
 
-</div>
+    <!-- JavaScript Data Binding -->
+    <script>
+        // Data strictly compliant with User Profile - 客資360 and NotebookLM sources
+        const customerDatabase = {
+            cust_1: {
+                // 1. 客戶資料
+                name: "林大明",
+                gender: "男",
+                address: "美麗人生社區 · B棟 12樓",
+                phone: "0912-345-678",
+                birthday: "1984-05-12",
+                age: "42 歲",
+                services: ["今網寬頻", "家電清洗", "影視服務"],
+                avatarText: "林",
 
+                // 2. 今網寬頻
+                ispSn: "BB-872193-Y",
+                ispType: "正常戶 (續約名單)",
+                ispDates: "2021-08-15 / 2026-08-15",
+                ispTenure: "5 年",
+                ispUnresolved: "0 件",
+                ispReferrals: "2 次",
+                ispNotes: "2025/08 電銷關懷：網路極速順暢，曾反應夜間尖峰上網偶爾較慢，已協助優化分享器頻道。介紹過鄰居B棟李太太申辦。",
+
+                // 3. 雙網方案
+                doubleNetStatus: "溝通中",
+                doubleNetCount: "0 組",
+                doubleNetPlan: "尚未申辦雙網",
+                doubleNetExpiry: "2026-09-15 (合約即將到期)",
+                doubleNetIsp: "中華電信",
+                doubleNetPrice: "799 元/月",
+
+                // Radar Opportunity Target
+                radarTarget: "上一次家電清洗已滿一年",
+                radarReason: "💡 契機點：2025-06-10 曾洗過日立冷氣，現已洗滿一年。近期天氣轉熱潮濕，是啟動老客戶關懷回購的最佳時機！",
+                radarConv: "88%",
+                radarBestTime: "平日 19:30 - 21:00 (下班休息時段)",
+                radarApproach: "「大明哥您好！我是智生活的服務顧問。特別打來提醒您，去年此時我們幫您安排客廳冷氣清洗，技師備註當時您的日立冷氣運作順暢。但因為洗滿一年了，冷氣關機留下的水氣容易積聚黴菌，最近換季開啟容易有霉味危害過敏。目前我們幫老客戶留了這星期的優先特約時段，幫您安排深度清洗並享300元折抵，順便連同洗衣機一起洗更划算喔！」",
+                radarStrategyTags: ["清洗滿一年主動喚醒", "冷氣水氣衍生黴菌痛點", "老客戶特約時段稀缺性"],
+
+                // 5 Core Products with strict custom fields
+                products: [
+                    { 
+                        name: "今網寬頻", 
+                        status: "held", 
+                        icon: "wifi",
+                        details: [
+                            { label: "客編", value: "BB-872193-Y" },
+                            { label: "狀態", value: "正常使用中" },
+                            { label: "到期日", value: "2026-08-15" }
+                        ],
+                        footer: "使用年資: 5 年"
+                    },
+                    { 
+                        name: "雙網方案", 
+                        status: "none", 
+                        icon: "smartphone",
+                        details: [
+                            { label: "締結狀態", value: "溝通中 (未締結)" },
+                            { label: "電信業者", value: "中華電信 (799/月)" },
+                            { label: "門號到期", value: "2026-09-15" }
+                        ],
+                        footer: "雙網締結數: 0 組",
+                        score: "85"
+                    },
+                    { 
+                        name: "家電清洗", 
+                        status: "upsell", 
+                        icon: "wind",
+                        details: [
+                            { label: "上次日期", value: "2025-06-10" },
+                            { label: "上次品牌", value: "日立冷氣" },
+                            { label: "型號 / 費用", value: "RAS-50NJ / $3,500" }
+                        ],
+                        footer: "⚠️ 已洗滿一整年！",
+                        score: "92"
+                    },
+                    { 
+                        name: "影視服務", 
+                        status: "held", 
+                        icon: "tv",
+                        details: [
+                            { label: "購買日期", value: "2025-12-25" },
+                            { label: "購買方案", value: "LiTV 豪華組合 90天" }
+                        ],
+                        footer: "影視狀態: 已期滿"
+                    },
+                    { 
+                        name: "定期清潔", 
+                        status: "held", 
+                        icon: "sparkles",
+                        details: [
+                            { label: "清潔狀態", value: "已派案 (雙週定期)" },
+                            { label: "清潔方案", value: "居家客廳廚房定期清潔" }
+                        ],
+                        footer: "累計總額: $24,000 元"
+                    }
+                ],
+
+                // AI Persona Profile Details
+                personaName: "A03 生活應用型",
+                personaKeyTerm: "“問細節”",
+                personaDesc: "核心在於確認使用場景。客戶非常關心資費、網速及家電清洗的具體實用價值，討厭空洞的推銷術語，在意售後專業度與品質保障。",
+                personaFocus: "服務品質、實用細節、保固",
+                personaDislikes: "套路行銷、背稿、隱藏費用",
+                skills: "1. 溝通時，多白話說明，如：「599在各家電信都是24GB的5G，用完之後會轉成4G吃到飽，看1080P影片或導航大概5M就夠了，所以12M對您日常使用絕對很夠！」<br>2. 家電清洗主打「預防保養比壞掉高額維修更划算」，並承諾清洗後一個月的安心保固。",
+                taboos: "不要主動宣告『保障頻寬』或『保證不降速』，避免引起理解差異客訴。切忌使用不實的保證，需白話解答客戶生活疑慮。"
+            },
+            cust_2: {
+                // 1. 客戶資料
+                name: "陳美玲",
+                gender: "女",
+                address: "幸福御邸社區 · A棟 5樓",
+                phone: "0928-876-543",
+                birthday: "1991-11-20",
+                age: "35 歲",
+                services: ["今網寬頻", "定期清潔"],
+                avatarText: "陳",
+
+                // 2. 今網寬頻
+                ispSn: "BB-412351-M",
+                ispType: "正常戶 (高流失預警)",
+                ispDates: "2024-03-10 / 2026-07-10",
+                ispTenure: "2 年",
+                ispUnresolved: "1 件",
+                ispReferrals: "0 次",
+                ispNotes: "2026/05 客訴：曾強烈反應大樓附近競業價格便宜，要求提供老客戶續約加碼折扣，否則考慮退拆。",
+
+                // 3. 雙網方案
+                doubleNetStatus: "未締結",
+                doubleNetCount: "0 組",
+                doubleNetPlan: "無",
+                doubleNetExpiry: "2026-10-15 (合約即將到期)",
+                doubleNetIsp: "台灣大哥大",
+                doubleNetPrice: "699 元/月",
+
+                // Radar Opportunity Target
+                radarTarget: "定期清潔服務即將結束",
+                radarReason: "💡 契機點：單次體驗清潔合約即將結束。用戶對價格敏感，此時推廣續訂結合「大雙網門號優惠」，最能用降價攻勢挽回流失機率！",
+                radarConv: "82%",
+                radarBestTime: "中午 12:00 - 13:30 (休息及精算開銷時間)",
+                radarApproach: "「美玲小姐您好！我是智生活服務顧問。您的居家定期清潔服務本週是最後一次體驗囉，大家都反應阿姨掃得非常乾淨。知道您平常很精打細算，我今天特別幫老客戶爭取續訂大禮包：只要續訂一年，搭配您十月份到期的台哥大門號攜碼到遠傳599，我們家用網路現折3,000元，省下的錢直接幫您全額折抵清潔費，算下來每個月多省一千元！」",
+                radarStrategyTags: ["定期清潔續訂緊迫性", "攜碼省下$3000利益具現化", "流失客群價格戰挽回"],
+
+                // 5 Core Products with strict custom fields
+                products: [
+                    { 
+                        name: "今網寬頻", 
+                        status: "held", 
+                        icon: "wifi",
+                        details: [
+                            { label: "客編", value: "BB-412351-M" },
+                            { label: "狀態", value: "流失預警待續約" },
+                            { label: "到期日", value: "2026-07-10" }
+                        ],
+                        footer: "使用年資: 2 年"
+                    },
+                    { 
+                        name: "雙網方案", 
+                        status: "upsell", 
+                        icon: "smartphone",
+                        details: [
+                            { label: "締結狀態", value: "未締結 (高轉化意願)" },
+                            { label: "電信業者", value: "台灣大哥大 (699/月)" },
+                            { label: "門號到期", value: "2026-10-15" }
+                        ],
+                        footer: "推薦攜碼599現省$3,000",
+                        score: "88"
+                    },
+                    { 
+                        name: "家電清洗", 
+                        status: "none", 
+                        icon: "wind",
+                        details: [
+                            { label: "上次日期", value: "無歷史資料" },
+                            { label: "上次品牌", value: "無" },
+                            { label: "型號 / 費用", value: "無 / $0" }
+                        ],
+                        footer: "未曾清洗",
+                        score: "50"
+                    },
+                    { 
+                        name: "影視服務", 
+                        status: "none", 
+                        icon: "tv",
+                        details: [
+                            { label: "購買日期", value: "2024-05-01" },
+                            { label: "購買方案", value: "Hami Video 單月體驗 (已過期)" }
+                        ],
+                        footer: "影視狀態: 已到期"
+                    },
+                    { 
+                        name: "定期清潔", 
+                        status: "upsell", 
+                        icon: "sparkles",
+                        details: [
+                            { label: "清潔狀態", value: "已聯絡 (單次體驗結束)" },
+                            { label: "清潔方案", value: "單次精緻清潔服務" }
+                        ],
+                        footer: "清潔服務即將結束！",
+                        score: "95"
+                    }
+                ],
+
+                // AI Persona Profile Details
+                personaName: "A02 價格敏感型",
+                personaKeyTerm: "“算帳王”",
+                personaDesc: "核心在於計算純利益與損害。客戶會主動詢問違約金補貼、贈品折現多少，喜歡對比競業方案，期望精算每月的總開銷。",
+                personaFocus: "實質折扣、CP值、違約金補貼",
+                personaDislikes: "隱藏費用、模糊報價、不乾脆",
+                skills: "1. 具現化價值：溝通時不要談抽象品質，直接說「省下多少錢」。例如：「攜碼幫您折抵3,000元，等於您寬頻月租費從370直接降到245元！」<br>2. 善用雙網優惠疊加優勢，說明攜碼的折扣力度遠大於老客戶原電信續約。",
+                taboos: "絕對不要說話不報價，這會讓客戶產生嚴重的防備心。不准提及「拍照上傳個資與預繳金」等麻煩手續，等建立划算感後再交代流程。"
+            },
+            cust_3: {
+                // 1. 客戶資料
+                name: "張小豪",
+                gender: "男",
+                address: "璀璨世紀社區 · C棟 3樓",
+                phone: "0935-123-456",
+                birthday: "1997-02-28",
+                age: "29 歲",
+                services: ["今網寬頻", "影視服務", "雙網方案"],
+                avatarText: "張",
+
+                // 2. 今網寬頻
+                ispSn: "BB-776123-A",
+                ispType: "正常戶 (新客穩固)",
+                ispDates: "2025-03-01 / 2027-03-01",
+                ispTenure: "1 年",
+                ispUnresolved: "0 件",
+                ispReferrals: "1 次",
+                ispNotes: "2025/03 裝機滿意回訪：網路極速順暢。客戶言詞高冷、不套交情，不希望非必要的電話打擾。",
+
+                // 3. 雙網方案
+                doubleNetStatus: "已締結",
+                doubleNetCount: "1 組",
+                doubleNetPlan: "今網大雙網-遠傳599門號合約",
+                doubleNetExpiry: "2027-09-01 (履約中)",
+                doubleNetIsp: "遠傳電信",
+                doubleNetPrice: "599 元/月",
+
+                // Radar Opportunity Target
+                radarTarget: "上一次家電清洗已滿一年",
+                radarReason: "💡 契機點：2025-05-18 清洗國際牌 CS-PX36BA2 冷氣，迄今已滿一週年。新社區住戶家電回購意願高。",
+                radarConv: "90%",
+                radarBestTime: "週末 10:30 - 12:00 (週末早晨，自主性高)",
+                radarApproach: "「張先生您好，我是智生活專屬服務顧問。提醒您，您去年五月在璀璨世紀清洗的國際牌冷氣已滿一年。根據我們大師技師建議，冷氣關機後累積的水氣已達年度發霉臨界點，建議在夏季高負載運作前完成年度拆洗以保健康。本週六下午我們師傅有本社區的特約時段，老客戶可直接扣減300元，我直接幫您排進去，節省您的時間好嗎？」",
+                radarStrategyTags: ["新社區一週年家電清洗回購", "講述保養時效性與規格數據", "週末特定綠色通道時段排定"],
+
+                // 5 Core Products with strict custom fields
+                products: [
+                    { 
+                        name: "今網寬頻", 
+                        status: "held", 
+                        icon: "wifi",
+                        details: [
+                            { label: "客編", value: "BB-776123-A" },
+                            { label: "狀態", value: "正常使用中" },
+                            { label: "到期日", value: "2027-03-01" }
+                        ],
+                        footer: "使用年資: 1 年"
+                    },
+                    { 
+                        name: "雙網方案", 
+                        status: "held", 
+                        icon: "smartphone",
+                        details: [
+                            { label: "締結狀態", value: "已締結 (遠傳599案)" },
+                            { label: "手機電信", value: "遠傳電信 (599/月)" },
+                            { label: "門號到期", value: "2027-09-01" }
+                        ],
+                        footer: "雙網締結數: 1 組"
+                    },
+                    { 
+                        name: "家電清洗", 
+                        status: "upsell", 
+                        icon: "wind",
+                        details: [
+                            { label: "上次日期", value: "2025-05-18" },
+                            { label: "上次品牌", value: "國際牌冷氣" },
+                            { label: "型號 / 費用", value: "CS-PX36BA2 / $3,200" }
+                        ],
+                        footer: "⚠️ 已洗滿一整年！",
+                        score: "95"
+                    },
+                    { 
+                        name: "影視服務", 
+                        status: "held", 
+                        icon: "tv",
+                        details: [
+                            { label: "購買日期", value: "2025-11-15" },
+                            { label: "購買方案", value: "Hami Video 電影館 180天" }
+                        ],
+                        footer: "影視狀態: 履約使用中"
+                    },
+                    { 
+                        name: "定期清潔", 
+                        status: "none", 
+                        icon: "sparkles",
+                        details: [
+                            { label: "清潔狀態", value: "待接單" },
+                            { label: "清潔方案", value: "尚未申辦" }
+                        ],
+                        footer: "無歷史委託記錄",
+                        score: "42"
+                    }
+                ],
+
+                // AI Persona Profile Details
+                personaName: "A01 冷感防備型",
+                personaKeyTerm: "“句點王”",
+                personaDesc: "核心在於客戶單向關閉對話，防備心極高，只回「嗯、喔、不需要」。討厭業務拉交情、說空洞的「很划算」話術。",
+                personaFocus: "客觀客觀的中立數據、時間節省、不囉唆",
+                personaDislikes: "套交情、強推、浪費時間、不專業",
+                skills: "1. 溝通技巧：不套交情、不套話術、不強推。快速進入重點，說明我們是專屬社區服務，詢問時主動給予對方考慮空間。<br>2. 流程至上，多強調「我們在璀璨世紀社區有統一排程，不耽誤您的時間，3分鐘幫您完成登記」。",
+                taboos: "絕對不可使用傳統推銷的死纏爛打。一旦客戶表現出不耐煩，應主動留下文字方案，在期限前再次以 LINE 確認意願即可。"
+            }
+        };
+
+        // Utility to Render Product Cards strictly for 5 categories
+        function renderProducts(products) {
+            const container = document.getElementById('products_container');
+            container.innerHTML = ''; // Clear container
+
+            products.forEach(p => {
+                let cardClass = "";
+                let badge = "";
+                let actionBtn = "";
+
+                if (p.status === 'held') {
+                    cardClass = "bg-emerald-50/75 border-emerald-200/80 hover:border-emerald-300";
+                    badge = `<span class="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm"><i data-lucide="check" class="w-2.5 h-2.5"></i> 已締結</span>`;
+                } else if (p.status === 'upsell') {
+                    cardClass = "bg-amber-50/70 border-amber-300/80 hover:border-amber-400 border-2 shadow-sm opportunity-glow";
+                    badge = `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="zap" class="w-3 h-3"></i> 推薦加購: ${p.score}分</span>`;
+                    actionBtn = `
+                        <button onclick="copyQuickPitch('${p.name}')" class="mt-3 w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-1.5 rounded-xl flex items-center justify-center gap-1 transition-colors">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300 fill-amber-300"></i> 開口銷售話術
+                        </button>
+                    `;
+                } else {
+                    cardClass = "bg-white border-slate-200/75 hover:border-slate-300 opacity-65";
+                    badge = `<span class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">未申辦 (意願: ${p.score}分)</span>`;
+                }
+
+                // Render dynamic card rows
+                let detailRows = "";
+                p.details.forEach(det => {
+                    detailRows += `
+                        <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-200/60">
+                            <span class="text-slate-400 font-medium">${det.label}</span>
+                            <span class="text-slate-800 font-bold font-mono">${det.value}</span>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="rounded-2xl border p-4 transition-all duration-200 hover:shadow-md ${cardClass} flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="p-2 rounded-xl bg-white shadow-xs border border-slate-100 text-slate-700">
+                                    <i data-lucide="${p.icon}" class="w-5 h-5"></i>
+                                </div>
+                                ${badge}
+                            </div>
+                            <h4 class="font-extrabold text-slate-900 text-sm tracking-tight mb-2">${p.name}</h4>
+                            <div class="space-y-1 text-xs">
+                                ${detailRows}
+                            </div>
+                        </div>
+                        <div class="mt-3.5 pt-3 border-t border-slate-200/50 flex flex-col justify-between">
+                            <span class="text-[10px] text-orange-600 font-extrabold block tracking-wide">${p.footer}</span>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Re-render Lucide icons
+            lucide.createIcons();
+        }
+
+        // Switch Database Values dynamically
+        function switchCustomer(id) {
+            const data = customerDatabase[id];
+
+            // 1. 客戶資料 Card
+            document.getElementById('cust_avatar').innerText = data.avatarText;
+            document.getElementById('cust_name').innerText = data.name;
+            document.getElementById('cust_gender').innerText = data.gender;
+            document.getElementById('cust_address').innerText = data.address;
+            document.getElementById('cust_phone').innerText = data.phone;
+            document.getElementById('cust_birthday').innerText = data.birthday;
+            document.getElementById('cust_age').innerText = data.age;
+
+            const serviceContainer = document.getElementById('cust_services');
+            serviceContainer.innerHTML = '';
+            data.services.forEach(serv => {
+                serviceContainer.innerHTML += `<span class="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-md text-[10px] border border-slate-200">${serv}</span>`;
+            });
+
+            // 2. 今網寬頻 Card
+            document.getElementById('isp_sn').innerText = data.ispSn;
+            document.getElementById('isp_type').innerText = data.ispType;
+            document.getElementById('isp_dates').innerText = data.ispDates;
+            document.getElementById('isp_tenure').innerText = data.ispTenure;
+            document.getElementById('isp_unresolved_complaints').innerText = data.ispUnresolved;
+            document.getElementById('isp_referrals').innerText = data.ispReferrals;
+            document.getElementById('isp_notes').innerText = data.ispNotes;
+
+            // 3. 雙網方案 Card
+            document.getElementById('double_net_status').innerText = data.doubleNetStatus;
+            document.getElementById('double_net_count').innerText = data.doubleNetCount;
+            document.getElementById('double_net_plan').innerText = data.doubleNetPlan;
+            document.getElementById('double_net_expiry').innerText = data.doubleNetExpiry;
+            document.getElementById('double_net_isp').innerText = data.doubleNetIsp;
+            document.getElementById('double_net_price').innerText = data.doubleNetPrice;
+
+            // 4. Update Opportunity Radar (Top prominent area)
+            document.getElementById('radar_target_prod').innerText = data.radarTarget;
+            document.getElementById('radar_opportunity_reason').innerText = data.radarReason;
+            document.getElementById('radar_conv_rate').innerText = data.radarConv;
+            document.getElementById('radar_best_time').innerText = data.radarBestTime;
+            document.getElementById('radar_communication_approach').innerText = data.radarApproach;
+
+            const strategyContainer = document.getElementById('radar_strategy_tags');
+            strategyContainer.innerHTML = '';
+            data.radarStrategyTags.forEach(tag => {
+                strategyContainer.innerHTML += `
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                        <span>${tag}</span>
+                    </div>`;
+            });
+
+            // 5. Render 5 Product Cards Grid
+            renderProducts(data.products);
+
+            // 6. Update AI Persona & Tactics Section
+            document.getElementById('persona_name').innerText = data.personaName;
+            document.getElementById('persona_key_term').innerText = data.personaKeyTerm;
+            document.getElementById('persona_desc').innerText = data.personaDesc;
+            document.getElementById('persona_focus').innerText = data.personaFocus;
+            document.getElementById('persona_dislikes').innerText = data.personaDislikes;
+            document.getElementById('persona_skills').innerHTML = data.skills;
+            document.getElementById('persona_taboos').innerText = data.taboos;
+
+            // 7. Toggle switch button colors
+            ['cust_1', 'cust_2', 'cust_3'].forEach(cid => {
+                const btn = document.getElementById(`btn_${cid}`);
+                if (cid === id) {
+                    btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-orange-600 shadow-sm border border-slate-200";
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900";
+                }
+            });
+        }
+
+        // Action: Copy Text to Clipboard
+        function copySalesPitch() {
+            const textToCopy = document.getElementById('radar_communication_approach').innerText;
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("開口對話話稿已複製！可直接用於電銷溝通");
+            } catch (err) {
+                console.error('無法複製', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Action: Quick Pitch copy for individual products
+        function copyQuickPitch(productName) {
+            let quickPitch = "";
+            const currentCustName = document.getElementById('cust_name').innerText;
+
+            if (productName.includes("家電清洗")) {
+                quickPitch = `「您好，我是智生活家電保養師。提醒您，您的冷氣/洗衣機清洗服務已經過一年了。為了維護家人健康、杜絕吹出過敏塵蟎，目前正好有老客戶限定的回購折價優惠，我們幫您排定本週末優先特約時段如何？」`;
+            } else if (productName.includes("雙網方案")) {
+                quickPitch = `「您好，我是智生活電信服務顧問。我們特別推出今網大雙網獨家組合：不限本人門號，只要將快到期門號攜碼到遠傳599，兩年家用寬頻網路費現折 3,000 元，這是門市問不到的方案，現省最多！」`;
+            } else if (productName.includes("定期清潔")) {
+                quickPitch = `「您好！智生活為社區提供專業的居家定期清潔，阿姨都是經過嚴格培訓並有督導檢驗。目前您單次體驗服務即將結束，現在續訂包年方案不僅有折扣，還加贈家用寬頻免費月份，幫您維持亮麗舒適的新家！」`;
+            } else if (productName.includes("影視服務")) {
+                quickPitch = `「您好！今網寬頻老客戶加購 Hami Video / LiTV 影視方案，享有全台最超值優惠。不論追劇、看電視新聞，直接在今網客服 APP 即可一鍵續約開通，保證尖峰時段串流順暢不卡頓！」`;
+            } else {
+                quickPitch = `「您好，我是智生活專屬社區客服管家。看您平常用我們服務很滿意，目前我們針對您本季的生活需求，準備了專屬的折扣推薦大禮包……」`;
+            }
+
+            const textArea = document.createElement("textarea");
+            textArea.value = quickPitch;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast(`已複製【${productName}】實戰話稿！`);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast_msg').innerText = message;
+            toast.className = toast.className.replace("translate-y-20 opacity-0 pointer-events-none", "translate-y-0 opacity-100");
+            
+            setTimeout(() => {
+                toast.className = toast.className.replace("translate-y-0 opacity-100", "translate-y-20 opacity-0 pointer-events-none");
+            }, 2500);
+        }
+
+        // Initialize default view
+        window.onload = function () {
+            lucide.createIcons();
+            switchCustomer('cust_1');
+        }
+    </script>
 </body>
 </html>
