@@ -9,7 +9,7 @@
     <!-- Lucide Icons for Premium UI Feel -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=300;400;500;700;900&display=swap');
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #f8fafc;
@@ -17,6 +17,10 @@
         .opportunity-glow {
             box-shadow: 0 0 22px rgba(249, 115, 22, 0.2);
             border: 2px solid rgba(249, 115, 22, 0.5);
+        }
+        .recommend-glow {
+            box-shadow: 0 0 22px rgba(244, 63, 94, 0.25);
+            border: 2px solid rgba(244, 63, 94, 0.6);
         }
     </style>
 </head>
@@ -45,7 +49,7 @@
                         <i data-lucide="users" class="w-3.5 h-3.5"></i> 切換客資 360 情境：
                     </span>
                     <button onclick="switchCustomer('cust_1')" id="btn_cust_1" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 bg-white text-orange-600 shadow-sm border border-slate-200">
-                        林大明 (生活應用型 - 清洗滿一年)
+                        林大明 (生活應用型 - 三效合一推薦)
                     </button>
                     <button onclick="switchCustomer('cust_2')" id="btn_cust_2" class="px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900">
                         陳美玲 (價格敏感型 - 清潔即將結束)
@@ -62,24 +66,24 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <!-- NotebookLM Sales Action Card (TOP MOST PROMINENT AREA) -->
-        <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 rounded-3xl p-0.5 shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-rose-600 rounded-3xl p-0.5 shadow-lg overflow-hidden">
             <div class="bg-white rounded-[22px] p-6">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-100 pb-5">
                     <div class="space-y-1.5">
-                        <div class="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 text-xs px-3 py-1 rounded-full font-bold">
-                            <i data-lucide="sparkles" class="w-3.5 h-3.5 fill-orange-100"></i> AI 實時偵測 · 黃金銷售契機
+                        <div class="inline-flex items-center gap-1.5 bg-rose-50 text-rose-700 text-xs px-3 py-1 rounded-full font-bold">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 fill-rose-100"></i> AI 實時聯動 · 推薦同一通電話進行多商品溝通
                         </div>
                         <h2 class="text-2xl font-black text-slate-950 flex items-center gap-2" id="radar_target_prod">
-                            家電清洗服務
+                            家電清洗 + 大雙網 + 影視服務 (三合一溝通)
                         </h2>
                         <p class="text-sm text-slate-600" id="radar_opportunity_reason">
-                            上一次家電清洗已滿一年，為提升出風品質與健康，是絕佳的回購切入點。
+                            家電清洗已滿一年，手機門號6個月內即將到期，且影視服務已到期！建議以高性價比大禮包進行整體包裝。
                         </p>
                     </div>
                     <div class="flex gap-3 shrink-0">
                         <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
-                            <span class="text-[10px] text-slate-400 block font-bold">預估轉化率</span>
-                            <span class="text-xl font-black text-orange-600" id="radar_conv_rate">88%</span>
+                            <span class="text-[10px] text-slate-400 block font-bold">綜合轉化率</span>
+                            <span class="text-xl font-black text-rose-600" id="radar_conv_rate">94%</span>
                         </div>
                         <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
                             <span class="text-[10px] text-slate-400 block font-bold">最佳撥打時間</span>
@@ -91,22 +95,22 @@
                 <!-- Strategic Pitch Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-5">
                     <div class="lg:col-span-2 space-y-2">
-                        <span class="text-xs font-extrabold text-orange-600 uppercase tracking-wider flex items-center gap-1">
-                            <i data-lucide="message-square" class="w-4 h-4"></i> 培訓師推薦：實戰溝通開口話稿
+                        <span class="text-xs font-extrabold text-rose-600 uppercase tracking-wider flex items-center gap-1">
+                            <i data-lucide="message-square" class="w-4 h-4"></i> 培訓師推薦：實戰一合一溝通開口話稿 (可複製)
                         </span>
-                        <div class="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 text-sm text-slate-800 font-medium leading-relaxed shadow-inner" id="radar_communication_approach">
-                            「大明哥您好！我是智生活的服務專員。特別打來跟您分享，去年差不多這個時候，我們有幫您安排客廳冷氣清洗。技師當時有提到冷氣狀況良好，但因為冷氣使用一年後內部水氣容易悶著衍生黴菌，吹出來對呼吸道影響很大。我們最近剛好在推廣社區老客戶團購，幫您安排下週原班師傅回去清洗，順便幫您爭取大雙網門號折抵網路費如何？」
+                        <div class="bg-rose-50/40 border border-rose-200 rounded-2xl p-4 text-sm text-slate-800 font-medium leading-relaxed shadow-inner max-h-56 overflow-y-auto" id="radar_communication_approach">
+                            「您好，請問是住在 美麗人生社區 的 林大明先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「另外大明哥，系統偵測到您在智生活買的影視服務已經到期，且您中華電信門號也快到期了。我們現在剛好有三合一社區特惠：只要安排家電清洗滿三台，每一台立刻再折 100 元！洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路！<br><br>另外，想關心一下您的手機門號是預計9月到期對嗎？剛好我們公司有很優惠的雙網方案，您剛好網路也是8月到期，如果我們搭配此方案的話，可以幫您折扣網路續約的資費喔！我試算給您聽好嗎？<br><br>「您之前觀看LiTV看得還習慣嗎？您方案已經到期了，要不要幫您續約呢？」
                         </div>
                     </div>
                     <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/60 flex flex-col justify-between">
                         <div class="space-y-1">
-                            <span class="text-xs font-bold text-slate-400 block">心智圖核心銷售策略：</span>
-                            <div class="text-xs text-slate-700 font-medium space-y-1.5" id="radar_strategy_tags">
+                            <span class="text-xs font-bold text-slate-400 block">心智圖聯合推廣要點：</span>
+                            <div class="text-xs text-slate-700 font-semibold space-y-1.5" id="radar_strategy_tags">
                                 <!-- Tags will be dynamically generated -->
                             </div>
                         </div>
                         <button onclick="copySalesPitch()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs transition shadow-sm mt-3">
-                            <i data-lucide="copy" class="w-4 h-4"></i> 複製此黃金話稿
+                            <i data-lucide="copy" class="w-4 h-4"></i> 複製此整合話稿
                         </button>
                     </div>
                 </div>
@@ -211,7 +215,7 @@
                     <div class="space-y-2.5 text-xs text-slate-600">
                         <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                             <span class="font-medium text-slate-400">雙網方案狀態</span>
-                            <span class="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded" id="double_net_status">溝通中</span>
+                            <span class="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded" id="double_net_status">可推薦</span>
                         </div>
                         <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                             <span class="font-medium text-slate-400">雙網締結數</span>
@@ -219,11 +223,11 @@
                         </div>
                         <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                             <span class="font-medium text-slate-400">雙網方案</span>
-                            <span class="font-bold text-slate-900" id="double_net_plan">今網大雙網-遠傳門號案</span>
+                            <span class="font-bold text-slate-900" id="double_net_plan">今網大雙網-中華/遠傳門號案</span>
                         </div>
                         <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                             <span class="font-medium text-slate-400">門號合約到期日</span>
-                            <span class="font-bold text-slate-900" id="double_net_expiry">2026-09-15 (六個月內到期)</span>
+                            <span class="font-bold text-rose-600" id="double_net_expiry">2026-09-15 (到期日六個月內)</span>
                         </div>
                         <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                             <span class="font-medium text-slate-400">客戶現有手機電信</span>
@@ -252,6 +256,7 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500">
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 已締結 / 持有中</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 可推薦 (契機觸及名單)</span>
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 推薦加購 (高意願續訂)</span>
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> 歷史無資料 / 未締結</span>
                 </div>
@@ -383,20 +388,20 @@
                 ispNotes: "2025/08 電銷關懷：網路極速順暢，曾反應夜間尖峰上網偶爾較慢，已協助優化分享器頻道。介紹過鄰居B棟李太太申辦。",
 
                 // 3. 雙網方案
-                doubleNetStatus: "溝通中",
+                doubleNetStatus: "可推薦",
                 doubleNetCount: "0 組",
-                doubleNetPlan: "尚未申辦雙網",
-                doubleNetExpiry: "2026-09-15 (合約即將到期)",
+                doubleNetPlan: "中華電信 (799/月)",
+                doubleNetExpiry: "2026-09-15 (到期日六個月內)",
                 doubleNetIsp: "中華電信",
                 doubleNetPrice: "799 元/月",
 
                 // Radar Opportunity Target
-                radarTarget: "上一次家電清洗已滿一年",
-                radarReason: "💡 契機點：2025-06-10 曾洗過日立冷氣，現已洗滿一年。近期天氣轉熱潮濕，是啟動老客戶關懷回購的最佳時機！",
-                radarConv: "88%",
+                radarTarget: "家電清洗 + 大雙網 + 影視服務 (三合一溝通)",
+                radarReason: "💡 核心契機：家電清洗已滿一年 ＋ 門號六個月內到期 ＋ 影視服務已期滿！建議在一通電話內一併促成。",
+                radarConv: "94%",
                 radarBestTime: "平日 19:30 - 21:00 (下班休息時段)",
-                radarApproach: "「大明哥您好！我是智生活的服務顧問。特別打來提醒您，去年此時我們幫您安排客廳冷氣清洗，技師備註當時您的日立冷氣運作順暢。但因為洗滿一年了，冷氣關機留下的水氣容易積聚黴菌，最近換季開啟容易有霉味危害過敏。目前我們幫老客戶留了這星期的優先特約時段，幫您安排深度清洗並享300元折抵，順便連同洗衣機一起洗更划算喔！」",
-                radarStrategyTags: ["清洗滿一年主動喚醒", "冷氣水氣衍生黴菌痛點", "老客戶特約時段稀缺性"],
+                radarApproach: "「您好，請問是住在 美麗人生社區 的 林大明先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)<br><br>「另外大明哥，系統偵測到您在智生活買的影視服務已經到期，且您中華電信門號也快到期了。我們現在剛好有三合一社區特惠：精度安排家電清洗滿三台，每一台立刻再折 100 元！洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路！<br><br>另外，想關心一下您的手機門號是預計9月到期對嗎？剛好我們公司有很優惠的雙網方案，您剛好網路也是8月到期，如果我們搭配此方案的話，可以幫您折扣網路續約的資費喔！我試算給您聽好嗎？<br><br>「您之前觀看LiTV看得還習慣嗎？您方案已經到期了，要不要幫您續約呢？」",
+                radarStrategyTags: ["一通電話多重加購 (家電+雙網+影視)", "老客戶專屬破千元大禮包", "社區群組發文口碑分享裂變"],
 
                 // 5 Core Products with strict custom fields
                 products: [
@@ -413,14 +418,14 @@
                     },
                     { 
                         name: "雙網方案", 
-                        status: "none", 
+                        status: "recommend", 
                         icon: "smartphone",
                         details: [
-                            { label: "締結狀態", value: "溝通中 (未締結)" },
+                            { label: "締結狀態", value: "未締結 (六個月內到期)" },
                             { label: "電信業者", value: "中華電信 (799/月)" },
                             { label: "門號到期", value: "2026-09-15" }
                         ],
-                        footer: "雙網締結數: 0 組",
+                        footer: "雙網締結數: 0 組 (可推薦 ⚠️)",
                         score: "85"
                     },
                     { 
@@ -437,13 +442,14 @@
                     },
                     { 
                         name: "影視服務", 
-                        status: "held", 
+                        status: "recommend", 
                         icon: "tv",
                         details: [
                             { label: "購買日期", value: "2025-12-25" },
                             { label: "購買方案", value: "LiTV 豪華組合 90天" }
                         ],
-                        footer: "影視狀態: 已期滿"
+                        footer: "影視狀態: 已期滿 (可推薦 ⚠️)",
+                        score: "90"
                     },
                     { 
                         name: "定期清潔", 
@@ -463,7 +469,7 @@
                 personaDesc: "核心在於確認使用場景。客戶非常關心資費、網速及家電清洗的具體實用價值，討厭空洞的推銷術語，在意售後專業度與品質保障。",
                 personaFocus: "服務品質、實用細節、保固",
                 personaDislikes: "套路行銷、背稿、隱藏費用",
-                skills: "1. 溝通時，多白話說明，如：「599在各家電信都是24GB的5G，用完之後會轉成4G吃到飽，看1080P影片或導航大概5M就夠了，所以12M對您日常使用絕對很夠！」<br>2. 家電清洗主打「預防保養比壞掉高額維修更划算」，並承諾清洗後一個月的安心保固。",
+                skills: "1. 溝通時，多白話說明，如：「599在各家電信都是24GB的5G，用完之後會轉成4G吃到飽，看1080P影片或導航大概5M就夠了，所以12M對您日常使用絕對很夠！」<br>2. 家電清洗主打「預防保養比壞掉高額維修更劃算」，並承諾清洗後一個月的安心保固。",
                 taboos: "不要主動宣告『保障頻寬』或『保證不降速』，避免引起理解差異客訴。切忌使用不實的保證，需白話解答客戶生活疑慮。"
             },
             cust_2: {
@@ -499,7 +505,7 @@
                 radarReason: "💡 契機點：單次體驗清潔合約即將結束。用戶對價格敏感，此時推廣續訂結合「大雙網門號優惠」，最能用降價攻勢挽回流失機率！",
                 radarConv: "82%",
                 radarBestTime: "中午 12:00 - 13:30 (休息及精算開銷時間)",
-                radarApproach: "「美玲小姐您好！我是智生活服務顧問。您的居家定期清潔服務本週是最後一次體驗囉，大家都反應阿姨掃得非常乾淨。知道您平常很精打細算，我今天特別幫老客戶爭取續訂大禮包：只要續訂一年，搭配您十月份到期的台哥大門號攜碼到遠傳599，我們家用網路現折3,000元，省下的錢直接幫您全額折抵清潔費，算下來每個月多省一千元！」",
+                radarApproach: "「美玲小姐您好！我是智生活服務顧問。您的居家定期清潔服務本週是最後一次服務囉，這段期間感覺如何呢？因為我們也需要規劃家政師的排班，是否要幫您續一年約，讓家政師繼續服務您呢？<br><br>也知道您平常很精打細算，也關心環境的整潔，最近剛好有家電清洗的優惠可以分享給您，請問您上一次冷氣清洗是在什麼時候呢？現在只要清洗滿三台，每台可以折扣100元，還可以加贈一個月網路喔！」",
                 radarStrategyTags: ["定期清潔續訂緊迫性", "攜碼省下$3000利益具現化", "流失客群價格戰挽回"],
 
                 // 5 Core Products with strict custom fields
@@ -569,7 +575,7 @@
                 personaFocus: "實質折扣、CP值、違約金補貼",
                 personaDislikes: "隱藏費用、模糊報價、不乾脆",
                 skills: "1. 具現化價值：溝通時不要談抽象品質，直接說「省下多少錢」。例如：「攜碼幫您折抵3,000元，等於您寬頻月租費從370直接降到245元！」<br>2. 善用雙網優惠疊加優勢，說明攜碼的折扣力度遠大於老客戶原電信續約。",
-                taboos: "絕對不要說話不報價，這會讓客戶產生嚴重的防備心。不准提及「拍照上傳個資與預繳金」等麻煩手續，等建立划算感後再交代流程。"
+                taboos: "絕對不要說話不報價，這會讓客戶產生嚴重的防備心。不准提及「拍照上傳個資與預繳金」等麻煩手續，等建立劃算感後再交代流程。"
             },
             cust_3: {
                 // 1. 客戶資料
@@ -604,7 +610,7 @@
                 radarReason: "💡 契機點：2025-05-18 清洗國際牌 CS-PX36BA2 冷氣，迄今已滿一週年。新社區住戶家電回購意願高。",
                 radarConv: "90%",
                 radarBestTime: "週末 10:30 - 12:00 (週末早晨，自主性高)",
-                radarApproach: "「張先生您好，我是智生活專屬服務顧問。提醒您，您去年五月在璀璨世紀清洗的國際牌冷氣已滿一年。根據我們大師技師建議，冷氣關機後累積的水氣已達年度發霉臨界點，建議在夏季高負載運作前完成年度拆洗以保健康。本週六下午我們師傅有本社區的特約時段，老客戶可直接扣減300元，我直接幫您排進去，節省您的時間好嗎？」",
+                radarApproach: "「您好，請問是住在 璀璨世紀社區 的 張小豪先生 嗎？我是智生活服務顧問敝姓O。去年您有使用智樂家的家電清洗服務，您還記得嗎？最近換季已經開始變熱了，開冷氣的頻率慢慢變高，您家裡的家電剛好洗滿一年了。是不是有打算再安排清洗保養呢？如果清洗乾淨會比較省電也比較健康喔！(如果客戶真的想要晚一點可以確認時間以後先追蹤)\n\n「只要清洗滿三台，每一台立刻再折 100 元！如果您是今網用戶，我們特別回饋贈送一個月網路。洗完後如果您覺得滿意，幫我們在社區群組發個文分享，我們再加碼送一個月網路。這樣算下來優惠的總價值已經超過一千元，超級劃算！」",
                 radarStrategyTags: ["新社區一週年家電清洗回購", "講述保養時效性與規格數據", "週末特定綠色通道時段排定"],
 
                 // 5 Core Products with strict custom fields
@@ -669,7 +675,7 @@
                 // AI Persona Profile Details
                 personaName: "A01 冷感防備型",
                 personaKeyTerm: "“句點王”",
-                personaDesc: "核心在於客戶單向關閉對話，防備心極高，只回「嗯、喔、不需要」。討厭業務拉交情、說空洞的「很划算」話術。",
+                personaDesc: "核心在於客戶單向關閉對話，防備心極高，只回「嗯、喔、不需要」。討厭業務拉交情、說空洞的「很劃算」話術。",
                 personaFocus: "客觀客觀的中立數據、時間節省、不囉唆",
                 personaDislikes: "套交情、強推、浪費時間、不專業",
                 skills: "1. 溝通技巧：不套交情、不套話術、不強推。快速進入重點，說明我們是專屬社區服務，詢問時主動給予對方考慮空間。<br>2. 流程至上，多強調「我們在璀璨世紀社區有統一排程，不耽誤您的時間，3分鐘幫您完成登記」。",
@@ -690,6 +696,15 @@
                 if (p.status === 'held') {
                     cardClass = "bg-emerald-50/75 border-emerald-200/80 hover:border-emerald-300";
                     badge = `<span class="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm"><i data-lucide="check" class="w-2.5 h-2.5"></i> 已締結</span>`;
+                } else if (p.status === 'recommend') {
+                    // Specially styled RED card as requested for "可推薦" high priority
+                    cardClass = "bg-rose-50/70 border-rose-400 hover:border-rose-500 border-2 shadow-sm recommend-glow animate-pulse-subtle";
+                    badge = `<span class="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="alert-circle" class="w-3 h-3"></i> 可推薦: ${p.score}分</span>`;
+                    actionBtn = `
+                        <button onclick="copyQuickPitch('${p.name}')" class="mt-3 w-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-1.5 rounded-xl flex items-center justify-center gap-1 transition-colors">
+                            <i data-lucide="zap" class="w-3.5 h-3.5 text-rose-200 fill-rose-200"></i> 開口銷售話術
+                        </button>
+                    `;
                 } else if (p.status === 'upsell') {
                     cardClass = "bg-amber-50/70 border-amber-300/80 hover:border-amber-400 border-2 shadow-sm opportunity-glow";
                     badge = `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="zap" class="w-3 h-3"></i> 推薦加購: ${p.score}分</span>`;
@@ -781,14 +796,14 @@
             document.getElementById('radar_opportunity_reason').innerText = data.radarReason;
             document.getElementById('radar_conv_rate').innerText = data.radarConv;
             document.getElementById('radar_best_time').innerText = data.radarBestTime;
-            document.getElementById('radar_communication_approach').innerText = data.radarApproach;
+            document.getElementById('radar_communication_approach').innerHTML = data.radarApproach;
 
             const strategyContainer = document.getElementById('radar_strategy_tags');
             strategyContainer.innerHTML = '';
             data.radarStrategyTags.forEach(tag => {
                 strategyContainer.innerHTML += `
                     <div class="flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                         <span>${tag}</span>
                     </div>`;
             });
@@ -825,7 +840,7 @@
             textArea.select();
             try {
                 document.execCommand('copy');
-                showToast("開口對話話稿已複製！可直接用於電銷溝通");
+                showToast("一鍵開口合一對話話稿已複製！可以直接用於電銷溝通");
             } catch (err) {
                 console.error('無法複製', err);
             }
@@ -842,7 +857,7 @@
             } else if (productName.includes("雙網方案")) {
                 quickPitch = `「您好，我是智生活電信服務顧問。我們特別推出今網大雙網獨家組合：不限本人門號，只要將快到期門號攜碼到遠傳599，兩年家用寬頻網路費現折 3,000 元，這是門市問不到的方案，現省最多！」`;
             } else if (productName.includes("定期清潔")) {
-                quickPitch = `「您好！智生活為社區提供專業的居家定期清潔，阿姨都是經過嚴格培訓並有督導檢驗。目前您單次體驗服務即將結束，現在續訂包年方案不僅有折扣，還加贈家用寬頻免費月份，幫您維持亮麗舒適的新家！」`;
+                quickPitch = `「您好！智生活為社區提供專業的居家定期清潔，阿姨都是經過嚴格培訓並有督導檢驗。目前您單次體驗服務即將結束，現在續訂包年方案貼心有折扣，還加贈家用寬頻免費月份，幫您維持亮麗舒適的新家！」`;
             } else if (productName.includes("影視服務")) {
                 quickPitch = `「您好！今網寬頻老客戶加購 Hami Video / LiTV 影視方案，享有全台最超值優惠。不論追劇、看電視新聞，直接在今網客服 APP 即可一鍵續約開通，保證尖峰時段串流順暢不卡頓！」`;
             } else {
