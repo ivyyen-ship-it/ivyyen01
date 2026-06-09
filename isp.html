@@ -15,12 +15,8 @@
             background-color: #f8fafc;
         }
         .opportunity-glow {
-            box-shadow: 0 0 22px rgba(249, 115, 22, 0.2);
-            border: 2px solid rgba(249, 115, 22, 0.5);
-        }
-        .recommend-glow {
-            box-shadow: 0 0 22px rgba(244, 63, 94, 0.25);
-            border: 2px solid rgba(244, 63, 94, 0.6);
+            box-shadow: 0 0 22px rgba(245, 158, 11, 0.2);
+            border: 2px solid rgba(245, 158, 11, 0.5);
         }
     </style>
 </head>
@@ -256,8 +252,7 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500">
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 已締結 / 持有中</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 可推薦 (契機觸及名單)</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 推薦加購 (高意願續訂)</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 可推薦 (契機觸及/續訂名單)</span>
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> 歷史無資料 / 未締結</span>
                 </div>
             </div>
@@ -464,7 +459,7 @@
                     },
                     { 
                         name: "家電清洗", 
-                        status: "upsell", 
+                        status: "recommend", 
                         icon: "wind",
                         details: [
                             { label: "上次日期", value: "2025-06-10" },
@@ -579,7 +574,7 @@
                     },
                     { 
                         name: "雙網方案", 
-                        status: "upsell", 
+                        status: "recommend", 
                         icon: "smartphone",
                         details: [
                             { label: "締結狀態", value: "未締結 (高轉化意願)" },
@@ -629,7 +624,7 @@
                     },
                     { 
                         name: "定期清潔", 
-                        status: "upsell", 
+                        status: "recommend", 
                         icon: "sparkles",
                         details: [
                             { label: "清潔狀態", value: "已聯絡 (單次體驗結束)" },
@@ -728,7 +723,7 @@
                     },
                     { 
                         name: "家電清洗", 
-                        status: "upsell", 
+                        status: "recommend", 
                         icon: "wind",
                         details: [
                             { label: "上次日期", value: "2025-05-18" },
@@ -736,7 +731,6 @@
                             { label: "型號 / 費用", value: "CS-PX36BA2 / $3,200" }
                         ],
                         footer: "⚠️ 已洗滿一整年！",
-                        score: "95",
                         extended: {
                             orderId: "25051801238812933",
                             payment: "線上刷卡 (下單時即付清)",
@@ -769,7 +763,6 @@
                             { label: "清潔方案", value: "尚未申辦" }
                         ],
                         footer: "無歷史委託記錄",
-                        score: "42",
                         extended: {
                             orderId: "無歷史交易記錄",
                             payment: "無",
@@ -912,13 +905,13 @@
                         </button>
                     `;
                 } else if (p.status === 'recommend') {
-                    // Specially styled RED card as requested for "可推薦" high priority - SCORES REMOVED COMPLETELY
-                    cardClass = "bg-rose-50/70 border-rose-400 hover:border-rose-500 border-2 shadow-sm recommend-glow animate-pulse-subtle";
-                    badge = `<span class="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="alert-circle" class="w-3 h-3"></i> 可推薦 ⚠️</span>`;
+                    // Specially styled AMBER/YELLOW card for "可推薦 (契機觸及/續訂名單)" high priority - SCORES REMOVED COMPLETELY
+                    cardClass = "bg-amber-50/70 border-amber-400 hover:border-amber-500 border-2 shadow-sm opportunity-glow animate-pulse-subtle";
+                    badge = `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="alert-circle" class="w-3 h-3"></i> 可推薦 ⚠️</span>`;
                     buttonGroupHtml = `
                         <div class="flex gap-2 w-full">
-                            <button onclick="toggleInlinePitch('pitch_block_${p.name.replace(/\s+/g, '')}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
-                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-rose-200 fill-rose-200"></i> 銷售話術
+                            <button onclick="toggleInlinePitch('pitch_block_${p.name.replace(/\s+/g, '')}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-100 fill-amber-100"></i> 銷售話術
                             </button>
                             <button onclick="openDetailModal('${p.name}')" class="flex-1 flex items-center justify-center gap-1 py-2 px-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[11px] font-extrabold rounded-xl shadow-xs transition-colors">
                                 <i data-lucide="receipt-text" class="w-3.5 h-3.5 text-slate-400"></i> 詳細資料
@@ -926,6 +919,7 @@
                         </div>
                     `;
                 } else if (p.status === 'upsell') {
+                    // Keep same Amber/Yellow aesthetic for recommended products as they are consolidated under the single yellow tag category now
                     cardClass = "bg-amber-50/70 border-amber-300/80 hover:border-amber-400 border-2 shadow-sm opportunity-glow";
                     badge = `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm"><i data-lucide="zap" class="w-3 h-3"></i> 推薦加購 🌟</span>`;
                     buttonGroupHtml = `
@@ -954,7 +948,7 @@
                     detailRows += `
                         <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-200/60">
                             <span class="text-slate-400 font-medium">${det.label}</span>
-                            <span class="text-slate-800 font-bold font-mono text-right">${det.value}</span>
+                            <span class="text-slate-800 font-bold font-mono text-right text-xs md:text-sm">${det.value}</span>
                         </div>
                     `;
                 });
