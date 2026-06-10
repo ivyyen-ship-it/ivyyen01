@@ -184,20 +184,16 @@
                             <span class="font-bold text-slate-900" id="isp_tenure">5 年</span>
                         </div>
                         <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                            <span class="font-medium text-slate-400">未處理完之客訴單</span>
-                            <span class="font-bold text-slate-900" id="isp_unresolved_complaints">0 件</span>
-                        </div>
-                        <div class="flex justify-between items-center py-1.5">
                             <span class="font-medium text-slate-400">客介客次數 (介紹人)</span>
                             <span class="font-bold text-indigo-600" id="isp_referrals">2 次</span>
                         </div>
+                        <div class="flex flex-col py-1.5">
+                            <span class="font-bold text-slate-500 block mb-1">歷史客訴紀錄(近5件)</span>
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 max-h-36 overflow-y-auto space-y-2 font-mono text-[10px] text-slate-700" id="isp_complaints_list">
+                                <!-- Dynamic complaints details populate here -->
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-150 text-[11px] mt-2">
-                    <span class="font-bold text-slate-500 block mb-1">客訴 / 關懷紀錄：</span>
-                    <p class="text-slate-700 leading-relaxed font-medium" id="isp_notes">
-                        2025/08 電銷回訪：網路極速順暢，反應夜間尖峰上網偶爾較慢，已提供頻寬優化建議。
-                    </p>
                 </div>
             </div>
 
@@ -375,7 +371,7 @@
                 <!-- Dynamic details populate here -->
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-                <!-- NEW: [歷史訂單連結] Button styled consistently with standard layout -->
+                <!-- MODIFIED: [歷史訂單連結] Button styled consistently with standard layout (equalized size and styling) -->
                 <button onclick="openHistoryOrderLink()" class="border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold py-2 px-4 rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-xs">
                     <i data-lucide="history" class="w-4 h-4 text-indigo-500"></i> [歷史訂單連結]
                 </button>
@@ -412,9 +408,16 @@
                 ispType: "正常戶 (續約名單)",
                 ispDates: "2021-08-15 / 2026-08-15",
                 ispTenure: "5 年",
-                ispUnresolved: "0 件",
                 ispReferrals: "2 次",
-                ispNotes: "2025/08 電銷關懷：網路極速順暢，曾反應夜間尖峰上網偶爾較慢，已協助優化分享器頻道。介紹過鄰居B棟李太太申辦。",
+                
+                // NEW: Historical Complaints mapping to requirements (strictly matches example text)
+                ispComplaints: [
+                    { date: "2025/07/24", type: "已結案其他", desc: "XXXX處理方法：測試　結單：林聖承　2025/07/24" },
+                    { date: "2025/04/17", type: "已結案障礙－無法上網", desc: "XXXXXXXX✦ 有用 AI 客服輔助　結單：林聖承" },
+                    { date: "2025/03/18", type: "已結案諮詢－電腦與網路", desc: "APP一鍵報修，請回電確認，可聯絡時間：中13-15結單：林聖承　2025/03/18" },
+                    { date: "2024/11/13", type: "已結案障礙－無法上網", desc: "1.接觸人：2.問題簡述：3.處理步驟結單：林聖承" },
+                    { date: "2024/08/27", type: "已結案障礙－無法上網", desc: "RD測試批次結單，斷線恢復，障礙原因：設備被偷結單：王逸云　2024/08/27" }
+                ],
 
                 // 3. 雙網方案
                 doubleNetStatus: "可推薦",
@@ -544,9 +547,13 @@
                 ispType: "正常戶 (高流失預警)",
                 ispDates: "2024-03-10 / 2026-07-10",
                 ispTenure: "2 年",
-                ispUnresolved: "1 件",
                 ispReferrals: "0 次",
-                ispNotes: "2026/05 客訴：曾強烈反應大樓附近競業價格便宜，要求提供老客戶續約加碼折扣，否則考慮退拆。",
+                
+                // NEW: Historical Complaints mapping to requirements (陳美玲)
+                ispComplaints: [
+                    { date: "2026/05/11", type: "已結案諮詢－續約問題", desc: "客戶來電詢問有沒有更便宜的方案，表示競爭對手價格更有優勢，已結單：陳志豪" },
+                    { date: "2025/11/02", type: "已結案諮詢－定期清潔", desc: "詢問家政師打掃時間可否調整，已協助聯絡排班主管，結單：林聖承" }
+                ],
 
                 // 3. 雙網方案
                 doubleNetStatus: "未締結",
@@ -578,7 +585,7 @@
                         footer: "使用年資: 2 年",
                         extended: {
                             orderId: "24031008129933211",
-                            payment: "信用卡定期自動扣款",
+                            payment: "信用卡定期 automatic 扣款",
                             notes: "2年合約即將到期。客戶對預算要求嚴苛，反應競業推銷低價方案，流失防衛心重。",
                             invoice: "手機載具 (載具號碼: /ML-9988)"
                         }
@@ -658,7 +665,7 @@
                 personaFocus: "實質折扣、CP值、違約金補貼",
                 personaDislikes: "隱藏費用、模糊報價、不乾脆",
                 skills: "1. 具現化價值：溝通時不要談抽象品質，直接說「省下多少錢」。例如：「攜碼幫您折抵3,000元，等於您寬頻月租費從370直接降到245元！」<br>2. 善用雙網優惠疊加優勢，說明攜碼的折扣力度遠大於老客戶原電信續約。",
-                taboos: "絕對不要說話不報價，這會讓客戶產生嚴重的防備心。不准提及「拍照上傳個資與預繳金」等麻煩手續，等建立劃算感後再交代流程。"
+                taboos: "絕對不要說話不報價，這會讓客戶產生營重的防備心。不准提及「拍照上傳個資與預繳金」等麻煩手續，等建立劃算感後再交代流程。"
             },
             cust_3: {
                 // 1. 客戶資料
@@ -676,9 +683,12 @@
                 ispType: "正常戶 (新客穩固)",
                 ispDates: "2025-03-01 / 2027-03-01",
                 ispTenure: "1 年",
-                ispUnresolved: "0 件",
                 ispReferrals: "1 次",
-                ispNotes: "2025/03 裝機滿意回訪：網路極速順暢。客戶言詞高冷、不套交情，不希望非必要的電話打擾。",
+                
+                // NEW: Historical Complaints mapping to requirements (張小豪)
+                ispComplaints: [
+                    { date: "2025/03/18", type: "已結案諮詢－電腦與網路", desc: "安裝初期詢問如何使用APP一鍵報修與分享器頻段設定，已回電排除障礙，結單：林聖承" }
+                ],
 
                 // 3. 雙網方案
                 doubleNetStatus: "已締結",
@@ -1043,9 +1053,24 @@
             document.getElementById('isp_type').innerText = data.ispType;
             document.getElementById('isp_dates').innerText = data.ispDates;
             document.getElementById('isp_tenure').innerText = data.ispTenure;
-            document.getElementById('isp_unresolved_complaints').innerText = data.ispUnresolved;
             document.getElementById('isp_referrals').innerText = data.ispReferrals;
-            document.getElementById('isp_notes').innerText = data.ispNotes;
+
+            // NEW: Dynamically render Historical Complaints List (last 5)
+            const complaintsContainer = document.getElementById('isp_complaints_list');
+            complaintsContainer.innerHTML = '';
+            if (data.ispComplaints && data.ispComplaints.length > 0) {
+                data.ispComplaints.forEach(item => {
+                    complaintsContainer.innerHTML += `
+                        <div class="pb-1.5 border-b border-slate-200 last:border-0 last:pb-0">
+                            <span class="text-indigo-600 font-bold block">${item.date}</span>
+                            <span class="text-rose-600 font-bold block mt-0.5">${item.type}</span>
+                            <span class="text-slate-600 font-medium block mt-0.5">${item.desc}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                complaintsContainer.innerHTML = `<span class="text-slate-400 font-medium italic block">無客訴紀錄</span>`;
+            }
 
             // 3. 雙網方案 Card
             document.getElementById('double_net_status').innerText = data.doubleNetStatus;
